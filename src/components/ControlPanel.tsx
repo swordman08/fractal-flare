@@ -1,7 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Slider } from "@/components/ui/slider";
-import { Moon, Sun, Palette, Sparkles, Waves, Grid3x3 } from "lucide-react";
+import { Moon, Sun, Palette, Sparkles, Waves, Grid3x3, Maximize, X } from "lucide-react";
 
 interface ControlPanelProps {
   isDarkMode: boolean;
@@ -13,6 +13,8 @@ interface ControlPanelProps {
   scale: number;
   onScaleChange: (scale: number) => void;
   onClear: () => void;
+  isOpen: boolean;
+  onTogglePanel: () => void;
 }
 
 const colorSchemes = [
@@ -63,10 +65,44 @@ export const ControlPanel = ({
   scale,
   onScaleChange,
   onClear,
+  isOpen,
+  onTogglePanel,
 }: ControlPanelProps) => {
+  const handleFullscreen = () => {
+    if (!document.fullscreenElement) {
+      document.documentElement.requestFullscreen();
+    } else {
+      document.exitFullscreen();
+    }
+  };
+
+  if (!isOpen) return null;
+
   return (
-    <Card className="fixed top-4 right-4 p-4 bg-card/80 backdrop-blur-lg border-border shadow-lg z-10">
+    <Card className="fixed top-4 right-4 p-4 bg-card/80 backdrop-blur-lg border-border shadow-lg z-10 animate-fade-in">
       <div className="flex flex-col gap-4">
+        {/* Close and Fullscreen Buttons */}
+        <div className="flex items-center justify-between gap-2">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={handleFullscreen}
+            className="gap-2"
+            title="Toggle Fullscreen (or press F11)"
+          >
+            <Maximize className="h-4 w-4" />
+            Fullscreen
+          </Button>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={onTogglePanel}
+            className="h-8 w-8 p-0"
+            title="Close Panel"
+          >
+            <X className="h-4 w-4" />
+          </Button>
+        </div>
         {/* Background Toggle */}
         <div className="flex items-center gap-2">
           <span className="text-sm font-medium text-foreground">Background:</span>

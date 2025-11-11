@@ -3,6 +3,7 @@ import { VisualCanvas } from "@/components/VisualCanvas";
 import { ControlPanel } from "@/components/ControlPanel";
 import { InfoOverlay } from "@/components/InfoOverlay";
 import { CreatorTag } from "@/components/CreatorTag";
+import { PanelToggle } from "@/components/PanelToggle";
 
 const Index = () => {
   const [isDarkMode, setIsDarkMode] = useState(true);
@@ -10,6 +11,7 @@ const Index = () => {
   const [patternMode, setPatternMode] = useState<"particles" | "fractals" | "waves" | "streak" | "laser" | "lightning" | "constellation" | "grid" | "ribbon" | "strobe" | "pulse" | "firework">("particles");
   const [scale, setScale] = useState(1);
   const [clearTrigger, setClearTrigger] = useState(0);
+  const [isPanelOpen, setIsPanelOpen] = useState(true);
 
   const getColorPalette = (scheme: string): string[] => {
     switch (scheme) {
@@ -74,17 +76,23 @@ const Index = () => {
           patternMode={patternMode}
           scale={scale}
         />
-        <ControlPanel
-          isDarkMode={isDarkMode}
-          onToggleDarkMode={() => setIsDarkMode(!isDarkMode)}
-          colorScheme={colorScheme}
-          onColorSchemeChange={setColorScheme}
-          patternMode={patternMode}
-          onPatternModeChange={setPatternMode}
-          scale={scale}
-          onScaleChange={setScale}
-          onClear={() => setClearTrigger((prev) => prev + 1)}
-        />
+        {isPanelOpen ? (
+          <ControlPanel
+            isDarkMode={isDarkMode}
+            onToggleDarkMode={() => setIsDarkMode(!isDarkMode)}
+            colorScheme={colorScheme}
+            onColorSchemeChange={setColorScheme}
+            patternMode={patternMode}
+            onPatternModeChange={setPatternMode}
+            scale={scale}
+            onScaleChange={setScale}
+            onClear={() => setClearTrigger((prev) => prev + 1)}
+            isOpen={isPanelOpen}
+            onTogglePanel={() => setIsPanelOpen(false)}
+          />
+        ) : (
+          <PanelToggle onToggle={() => setIsPanelOpen(true)} />
+        )}
         <InfoOverlay />
         <CreatorTag />
       </div>
