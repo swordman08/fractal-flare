@@ -1,7 +1,9 @@
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Slider } from "@/components/ui/slider";
-import { Moon, Sun, Palette, Sparkles, Waves, Grid3x3, Maximize, X } from "lucide-react";
+import { Label } from "@/components/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Moon, Sun, Palette, Sparkles, Waves, Grid3x3, Maximize, X, AlertTriangle } from "lucide-react";
 
 interface ControlPanelProps {
   isDarkMode: boolean;
@@ -10,6 +12,8 @@ interface ControlPanelProps {
   onColorSchemeChange: (scheme: string) => void;
   patternMode: "particles" | "fractals" | "waves" | "streak" | "laser" | "lightning" | "constellation" | "grid" | "ribbon" | "strobe" | "pulse" | "firework";
   onPatternModeChange: (mode: "particles" | "fractals" | "waves" | "streak" | "laser" | "lightning" | "constellation" | "grid" | "ribbon" | "strobe" | "pulse" | "firework") => void;
+  particleShape: "circle" | "square" | "triangle" | "star" | "diamond" | "hexagon";
+  onParticleShapeChange: (shape: "circle" | "square" | "triangle" | "star" | "diamond" | "hexagon") => void;
   scale: number;
   onScaleChange: (scale: number) => void;
   onClear: () => void;
@@ -62,6 +66,8 @@ export const ControlPanel = ({
   onColorSchemeChange,
   patternMode,
   onPatternModeChange,
+  particleShape,
+  onParticleShapeChange,
   scale,
   onScaleChange,
   onClear,
@@ -167,6 +173,30 @@ export const ControlPanel = ({
               );
             })}
           </div>
+          {(patternMode === "fractals" || patternMode === "constellation") && (
+            <div className="flex items-start gap-2 text-xs text-yellow-600 dark:text-yellow-400 bg-yellow-500/10 p-2 rounded-md">
+              <AlertTriangle className="h-4 w-4 shrink-0 mt-0.5" />
+              <span>This pattern may be intensive on slower devices</span>
+            </div>
+          )}
+        </div>
+
+        {/* Particle Shape */}
+        <div className="space-y-2">
+          <Label className="text-sm font-medium">Shape:</Label>
+          <Select value={particleShape} onValueChange={onParticleShapeChange}>
+            <SelectTrigger className="w-full">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="circle">Circle</SelectItem>
+              <SelectItem value="square">Square</SelectItem>
+              <SelectItem value="triangle">Triangle</SelectItem>
+              <SelectItem value="star">Star</SelectItem>
+              <SelectItem value="diamond">Diamond</SelectItem>
+              <SelectItem value="hexagon">Hexagon</SelectItem>
+            </SelectContent>
+          </Select>
         </div>
 
         {/* Scale Slider */}

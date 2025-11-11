@@ -28,10 +28,11 @@ interface VisualCanvasProps {
   isDarkMode: boolean;
   colorPalette: string[];
   patternMode: "particles" | "fractals" | "waves" | "streak" | "laser" | "lightning" | "constellation" | "grid" | "ribbon" | "strobe" | "pulse" | "firework";
+  particleShape: "circle" | "square" | "triangle" | "star" | "diamond" | "hexagon";
   scale: number;
 }
 
-export const VisualCanvas = ({ isDarkMode, colorPalette, patternMode, scale }: VisualCanvasProps) => {
+export const VisualCanvas = ({ isDarkMode, colorPalette, patternMode, particleShape, scale }: VisualCanvasProps) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const particlesRef = useRef<Particle[]>([]);
   const mouseRef = useRef({ x: 0, y: 0, isMoving: false });
@@ -712,16 +713,130 @@ export const VisualCanvas = ({ isDarkMode, colorPalette, patternMode, scale }: V
                 ctx.fill();
             }
           } else {
-            // Draw enhanced circles with ring
+            // Draw shapes based on particleShape
             ctx.beginPath();
-            ctx.arc(particle.x, particle.y, particle.size, 0, Math.PI * 2);
-            ctx.fill();
             
-            // Add outer ring for depth
-            ctx.globalAlpha = particle.life * 0.3;
-            ctx.beginPath();
-            ctx.arc(particle.x, particle.y, particle.size * 1.5, 0, Math.PI * 2);
-            ctx.stroke();
+            switch (particleShape) {
+              case "circle":
+                ctx.arc(particle.x, particle.y, particle.size, 0, Math.PI * 2);
+                ctx.fill();
+                // Add outer ring for depth
+                ctx.globalAlpha = particle.life * 0.3;
+                ctx.beginPath();
+                ctx.arc(particle.x, particle.y, particle.size * 1.5, 0, Math.PI * 2);
+                ctx.stroke();
+                break;
+                
+              case "square":
+                ctx.fillRect(
+                  particle.x - particle.size,
+                  particle.y - particle.size,
+                  particle.size * 2,
+                  particle.size * 2
+                );
+                // Add outer square for depth
+                ctx.globalAlpha = particle.life * 0.3;
+                ctx.strokeRect(
+                  particle.x - particle.size * 1.5,
+                  particle.y - particle.size * 1.5,
+                  particle.size * 3,
+                  particle.size * 3
+                );
+                break;
+                
+              case "triangle":
+                for (let i = 0; i < 3; i++) {
+                  const angle = (Math.PI * 2 * i) / 3 - Math.PI / 2;
+                  const x = particle.x + Math.cos(angle) * particle.size;
+                  const y = particle.y + Math.sin(angle) * particle.size;
+                  if (i === 0) ctx.moveTo(x, y);
+                  else ctx.lineTo(x, y);
+                }
+                ctx.closePath();
+                ctx.fill();
+                // Add outer triangle for depth
+                ctx.globalAlpha = particle.life * 0.3;
+                ctx.beginPath();
+                for (let i = 0; i < 3; i++) {
+                  const angle = (Math.PI * 2 * i) / 3 - Math.PI / 2;
+                  const x = particle.x + Math.cos(angle) * particle.size * 1.5;
+                  const y = particle.y + Math.sin(angle) * particle.size * 1.5;
+                  if (i === 0) ctx.moveTo(x, y);
+                  else ctx.lineTo(x, y);
+                }
+                ctx.closePath();
+                ctx.stroke();
+                break;
+                
+              case "star":
+                const starPoints = 5;
+                for (let i = 0; i < starPoints * 2; i++) {
+                  const angle = (Math.PI * i) / starPoints - Math.PI / 2;
+                  const radius = i % 2 === 0 ? particle.size : particle.size * 0.5;
+                  const x = particle.x + Math.cos(angle) * radius;
+                  const y = particle.y + Math.sin(angle) * radius;
+                  if (i === 0) ctx.moveTo(x, y);
+                  else ctx.lineTo(x, y);
+                }
+                ctx.closePath();
+                ctx.fill();
+                // Add outer star for depth
+                ctx.globalAlpha = particle.life * 0.3;
+                ctx.beginPath();
+                for (let i = 0; i < starPoints * 2; i++) {
+                  const angle = (Math.PI * i) / starPoints - Math.PI / 2;
+                  const radius = i % 2 === 0 ? particle.size * 1.5 : particle.size * 0.75;
+                  const x = particle.x + Math.cos(angle) * radius;
+                  const y = particle.y + Math.sin(angle) * radius;
+                  if (i === 0) ctx.moveTo(x, y);
+                  else ctx.lineTo(x, y);
+                }
+                ctx.closePath();
+                ctx.stroke();
+                break;
+                
+              case "diamond":
+                ctx.moveTo(particle.x, particle.y - particle.size);
+                ctx.lineTo(particle.x + particle.size, particle.y);
+                ctx.lineTo(particle.x, particle.y + particle.size);
+                ctx.lineTo(particle.x - particle.size, particle.y);
+                ctx.closePath();
+                ctx.fill();
+                // Add outer diamond for depth
+                ctx.globalAlpha = particle.life * 0.3;
+                ctx.beginPath();
+                ctx.moveTo(particle.x, particle.y - particle.size * 1.5);
+                ctx.lineTo(particle.x + particle.size * 1.5, particle.y);
+                ctx.lineTo(particle.x, particle.y + particle.size * 1.5);
+                ctx.lineTo(particle.x - particle.size * 1.5, particle.y);
+                ctx.closePath();
+                ctx.stroke();
+                break;
+                
+              case "hexagon":
+                for (let i = 0; i < 6; i++) {
+                  const angle = (Math.PI * 2 * i) / 6;
+                  const x = particle.x + Math.cos(angle) * particle.size;
+                  const y = particle.y + Math.sin(angle) * particle.size;
+                  if (i === 0) ctx.moveTo(x, y);
+                  else ctx.lineTo(x, y);
+                }
+                ctx.closePath();
+                ctx.fill();
+                // Add outer hexagon for depth
+                ctx.globalAlpha = particle.life * 0.3;
+                ctx.beginPath();
+                for (let i = 0; i < 6; i++) {
+                  const angle = (Math.PI * 2 * i) / 6;
+                  const x = particle.x + Math.cos(angle) * particle.size * 1.5;
+                  const y = particle.y + Math.sin(angle) * particle.size * 1.5;
+                  if (i === 0) ctx.moveTo(x, y);
+                  else ctx.lineTo(x, y);
+                }
+                ctx.closePath();
+                ctx.stroke();
+                break;
+            }
           }
           
           ctx.restore();
@@ -753,7 +868,7 @@ export const VisualCanvas = ({ isDarkMode, colorPalette, patternMode, scale }: V
         cancelAnimationFrame(animationRef.current);
       }
     };
-  }, [isDarkMode, colorPalette, patternMode]);
+  }, [isDarkMode, colorPalette, patternMode, particleShape]);
 
   return (
     <canvas

@@ -9,6 +9,7 @@ const Index = () => {
   const [isDarkMode, setIsDarkMode] = useState(true);
   const [colorScheme, setColorScheme] = useState("cyan");
   const [patternMode, setPatternMode] = useState<"particles" | "fractals" | "waves" | "streak" | "laser" | "lightning" | "constellation" | "grid" | "ribbon" | "strobe" | "pulse" | "firework">("particles");
+  const [particleShape, setParticleShape] = useState<"circle" | "square" | "triangle" | "star" | "diamond" | "hexagon">("circle");
   const [scale, setScale] = useState(1);
   const [clearTrigger, setClearTrigger] = useState(0);
   const [isPanelOpen, setIsPanelOpen] = useState(true);
@@ -74,6 +75,7 @@ const Index = () => {
           isDarkMode={isDarkMode}
           colorPalette={getColorPalette(colorScheme)}
           patternMode={patternMode}
+          particleShape={particleShape}
           scale={scale}
         />
         {isPanelOpen ? (
@@ -84,6 +86,8 @@ const Index = () => {
             onColorSchemeChange={setColorScheme}
             patternMode={patternMode}
             onPatternModeChange={setPatternMode}
+            particleShape={particleShape}
+            onParticleShapeChange={setParticleShape}
             scale={scale}
             onScaleChange={setScale}
             onClear={() => setClearTrigger((prev) => prev + 1)}
