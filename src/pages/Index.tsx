@@ -2,6 +2,7 @@ import { useState } from "react";
 import { VisualCanvas } from "@/components/VisualCanvas";
 import { ControlPanel } from "@/components/ControlPanel";
 import { InfoOverlay } from "@/components/InfoOverlay";
+import { CreatorTag } from "@/components/CreatorTag";
 
 const Index = () => {
   const [isDarkMode, setIsDarkMode] = useState(true);
@@ -85,6 +86,7 @@ const Index = () => {
           onClear={() => setClearTrigger((prev) => prev + 1)}
         />
         <InfoOverlay />
+        <CreatorTag />
       </div>
     </div>
   );
