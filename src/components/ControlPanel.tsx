@@ -7,8 +7,8 @@ interface ControlPanelProps {
   onToggleDarkMode: () => void;
   colorScheme: string;
   onColorSchemeChange: (scheme: string) => void;
-  patternMode: "particles" | "fractals" | "waves";
-  onPatternModeChange: (mode: "particles" | "fractals" | "waves") => void;
+  patternMode: "particles" | "fractals" | "waves" | "streak" | "laser" | "lightning" | "constellation" | "grid" | "ribbon";
+  onPatternModeChange: (mode: "particles" | "fractals" | "waves" | "streak" | "laser" | "lightning" | "constellation" | "grid" | "ribbon") => void;
   onClear: () => void;
 }
 
@@ -36,6 +36,12 @@ const patternModes = [
   { name: "Particles", value: "particles" as const, icon: Sparkles },
   { name: "Fractals", value: "fractals" as const, icon: Grid3x3 },
   { name: "Waves", value: "waves" as const, icon: Waves },
+  { name: "Streak", value: "streak" as const, icon: Sparkles },
+  { name: "Laser", value: "laser" as const, icon: Sparkles },
+  { name: "Lightning", value: "lightning" as const, icon: Sparkles },
+  { name: "Constellation", value: "constellation" as const, icon: Sparkles },
+  { name: "Grid", value: "grid" as const, icon: Grid3x3 },
+  { name: "Ribbon", value: "ribbon" as const, icon: Waves },
 ];
 
 export const ControlPanel = ({
@@ -106,9 +112,10 @@ export const ControlPanel = ({
                   variant={patternMode === mode.value ? "default" : "outline"}
                   size="sm"
                   onClick={() => onPatternModeChange(mode.value)}
-                  className="gap-1 p-2"
+                  className="gap-1 p-2 text-xs"
+                  title={mode.name}
                 >
-                  <Icon className="h-3 w-3" />
+                  {mode.name}
                 </Button>
               );
             })}

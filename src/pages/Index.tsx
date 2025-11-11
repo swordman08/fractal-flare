@@ -6,7 +6,7 @@ import { InfoOverlay } from "@/components/InfoOverlay";
 const Index = () => {
   const [isDarkMode, setIsDarkMode] = useState(true);
   const [colorScheme, setColorScheme] = useState("cyan");
-  const [patternMode, setPatternMode] = useState<"particles" | "fractals" | "waves">("particles");
+  const [patternMode, setPatternMode] = useState<"particles" | "fractals" | "waves" | "streak" | "laser" | "lightning" | "constellation" | "grid" | "ribbon">("particles");
   const [clearTrigger, setClearTrigger] = useState(0);
 
   const getColorPalette = (scheme: string): string[] => {

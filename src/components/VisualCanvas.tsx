@@ -27,13 +27,16 @@ interface Particle {
 interface VisualCanvasProps {
   isDarkMode: boolean;
   colorPalette: string[];
-  patternMode: "particles" | "fractals" | "waves";
+  patternMode: "particles" | "fractals" | "waves" | "streak" | "laser" | "lightning" | "constellation" | "grid" | "ribbon";
 }
 
 export const VisualCanvas = ({ isDarkMode, colorPalette, patternMode }: VisualCanvasProps) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const particlesRef = useRef<Particle[]>([]);
   const mouseRef = useRef({ x: 0, y: 0, isMoving: false });
+  const mouseTrailRef = useRef<{ x: number; y: number }[]>([]);
+  const laserBeamsRef = useRef<{ x1: number; y1: number; x2: number; y2: number; life: number; color: string }[]>([]);
+  const gridNodesRef = useRef<{ x: number; y: number; active: boolean }[]>([]);
   const animationRef = useRef<number>();
 
   useEffect(() => {
@@ -55,9 +58,36 @@ export const VisualCanvas = ({ isDarkMode, colorPalette, patternMode }: VisualCa
     const handleMouseMove = (e: MouseEvent) => {
       mouseRef.current = { x: e.clientX, y: e.clientY, isMoving: true };
       
-      // Create particles on mouse trail
-      for (let i = 0; i < 3; i++) {
+      // Update trail for streak pattern
+      mouseTrailRef.current.push({ x: e.clientX, y: e.clientY });
+      if (mouseTrailRef.current.length > 50) {
+        mouseTrailRef.current.shift();
+      }
+      
+      // Create pattern-specific effects
+      if (patternMode === "streak") {
+        if (mouseTrailRef.current.length > 1) {
+          createParticle(e.clientX, e.clientY);
+        }
+      } else if (patternMode === "laser") {
+        if (Math.random() > 0.7) {
+          createLaserBeam(e.clientX, e.clientY);
+        }
+      } else if (patternMode === "lightning") {
+        if (Math.random() > 0.9) {
+          createLightning(e.clientX, e.clientY);
+        }
+      } else if (patternMode === "constellation") {
         createParticle(e.clientX, e.clientY);
+      } else if (patternMode === "ribbon") {
+        for (let i = 0; i < 2; i++) {
+          createParticle(e.clientX, e.clientY);
+        }
+      } else {
+        // Default particle trail
+        for (let i = 0; i < 3; i++) {
+          createParticle(e.clientX, e.clientY);
+        }
       }
     };
 
@@ -65,6 +95,14 @@ export const VisualCanvas = ({ isDarkMode, colorPalette, patternMode }: VisualCa
     const handleClick = (e: MouseEvent) => {
       if (patternMode === "fractals") {
         createFractalBurst(e.clientX, e.clientY);
+      } else if (patternMode === "laser") {
+        createLaserShowBurst(e.clientX, e.clientY);
+      } else if (patternMode === "lightning") {
+        for (let i = 0; i < 5; i++) {
+          createLightning(e.clientX, e.clientY);
+        }
+      } else if (patternMode === "grid") {
+        createGridExplosion(e.clientX, e.clientY);
       } else {
         const particleCount = 30;
         for (let i = 0; i < particleCount; i++) {
@@ -178,12 +216,182 @@ export const VisualCanvas = ({ isDarkMode, colorPalette, patternMode }: VisualCa
       }
     };
 
+    const createLaserBeam = (x: number, y: number) => {
+      const angle = Math.random() * Math.PI * 2;
+      const length = 200 + Math.random() * 400;
+      const color = colorPalette[Math.floor(Math.random() * colorPalette.length)];
+      
+      laserBeamsRef.current.push({
+        x1: x,
+        y1: y,
+        x2: x + Math.cos(angle) * length,
+        y2: y + Math.sin(angle) * length,
+        life: 1,
+        color,
+      });
+    };
+
+    const createLaserShowBurst = (x: number, y: number) => {
+      for (let i = 0; i < 20; i++) {
+        const angle = (Math.PI * 2 * i) / 20;
+        const length = 300 + Math.random() * 200;
+        const color = colorPalette[Math.floor(Math.random() * colorPalette.length)];
+        
+        laserBeamsRef.current.push({
+          x1: x,
+          y1: y,
+          x2: x + Math.cos(angle) * length,
+          y2: y + Math.sin(angle) * length,
+          life: 1,
+          color,
+        });
+      }
+    };
+
+    const createLightning = (x: number, y: number) => {
+      const endX = x + (Math.random() - 0.5) * 400;
+      const endY = y + (Math.random() - 0.5) * 400;
+      const color = colorPalette[Math.floor(Math.random() * colorPalette.length)];
+      
+      // Create jagged lightning path
+      const segments = 10;
+      let currentX = x;
+      let currentY = y;
+      
+      for (let i = 0; i < segments; i++) {
+        const nextX = x + (endX - x) * (i + 1) / segments + (Math.random() - 0.5) * 50;
+        const nextY = y + (endY - y) * (i + 1) / segments + (Math.random() - 0.5) * 50;
+        
+        laserBeamsRef.current.push({
+          x1: currentX,
+          y1: currentY,
+          x2: nextX,
+          y2: nextY,
+          life: 1,
+          color,
+        });
+        
+        currentX = nextX;
+        currentY = nextY;
+      }
+    };
+
+    const createGridExplosion = (x: number, y: number) => {
+      const gridSize = 30;
+      for (let i = -5; i <= 5; i++) {
+        for (let j = -5; j <= 5; j++) {
+          const px = x + i * gridSize;
+          const py = y + j * gridSize;
+          const angle = Math.atan2(j, i);
+          createParticle(px, py, angle, true, { type: "grid" });
+        }
+      }
+    };
+
     const drawParticles = () => {
       if (!canvas || !ctx) return;
 
       // Clear with background color
       ctx.fillStyle = isDarkMode ? "#000000" : "#FFFFFF";
       ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+      // Draw streak trail
+      if (patternMode === "streak" && mouseTrailRef.current.length > 1) {
+        ctx.save();
+        ctx.strokeStyle = colorPalette[0];
+        ctx.lineWidth = 3;
+        ctx.lineCap = "round";
+        ctx.lineJoin = "round";
+        
+        if (isDarkMode) {
+          ctx.shadowBlur = 20;
+          ctx.shadowColor = colorPalette[0];
+        }
+        
+        ctx.beginPath();
+        mouseTrailRef.current.forEach((point, i) => {
+          ctx.globalAlpha = i / mouseTrailRef.current.length;
+          if (i === 0) ctx.moveTo(point.x, point.y);
+          else ctx.lineTo(point.x, point.y);
+        });
+        ctx.stroke();
+        ctx.restore();
+      }
+
+      // Draw laser beams
+      if (patternMode === "laser" || patternMode === "lightning") {
+        laserBeamsRef.current = laserBeamsRef.current.filter((beam) => {
+          beam.life -= 0.05;
+          
+          if (beam.life > 0) {
+            ctx.save();
+            ctx.strokeStyle = beam.color;
+            ctx.lineWidth = patternMode === "lightning" ? 2 + Math.random() * 3 : 3;
+            ctx.globalAlpha = beam.life;
+            
+            if (isDarkMode) {
+              ctx.shadowBlur = 25;
+              ctx.shadowColor = beam.color;
+            }
+            
+            ctx.beginPath();
+            ctx.moveTo(beam.x1, beam.y1);
+            ctx.lineTo(beam.x2, beam.y2);
+            ctx.stroke();
+            ctx.restore();
+          }
+          
+          return beam.life > 0;
+        });
+      }
+
+      // Draw constellation connections
+      if (patternMode === "constellation" && particlesRef.current.length > 1) {
+        ctx.save();
+        ctx.strokeStyle = colorPalette[0];
+        ctx.lineWidth = 1;
+        ctx.globalAlpha = 0.3;
+        
+        for (let i = 0; i < particlesRef.current.length; i++) {
+          for (let j = i + 1; j < particlesRef.current.length; j++) {
+            const p1 = particlesRef.current[i];
+            const p2 = particlesRef.current[j];
+            const dist = Math.hypot(p2.x - p1.x, p2.y - p1.y);
+            
+            if (dist < 150) {
+              ctx.globalAlpha = (1 - dist / 150) * 0.5;
+              ctx.beginPath();
+              ctx.moveTo(p1.x, p1.y);
+              ctx.lineTo(p2.x, p2.y);
+              ctx.stroke();
+            }
+          }
+        }
+        ctx.restore();
+      }
+
+      // Draw grid lines
+      if (patternMode === "grid") {
+        ctx.save();
+        ctx.strokeStyle = colorPalette[0];
+        ctx.lineWidth = 0.5;
+        ctx.globalAlpha = 0.2;
+        
+        const gridSize = 40;
+        for (let x = 0; x < canvas.width; x += gridSize) {
+          ctx.beginPath();
+          ctx.moveTo(x, 0);
+          ctx.lineTo(x, canvas.height);
+          ctx.stroke();
+        }
+        for (let y = 0; y < canvas.height; y += gridSize) {
+          ctx.beginPath();
+          ctx.moveTo(0, y);
+          ctx.lineTo(canvas.width, y);
+          ctx.stroke();
+        }
+        ctx.restore();
+      }
 
       // Update and draw particles
       particlesRef.current = particlesRef.current.filter((particle) => {
@@ -202,6 +410,21 @@ export const VisualCanvas = ({ isDarkMode, colorPalette, patternMode }: VisualCa
           particle.angle += 0.05;
           particle.vx += Math.cos(particle.angle) * 0.1;
           particle.vy += Math.sin(particle.angle) * 0.1;
+        } else if (patternMode === "ribbon") {
+          particle.vx *= 0.95;
+          particle.vy *= 0.95;
+          particle.angle += 0.1;
+          particle.x += Math.cos(particle.angle) * 2;
+          particle.y += Math.sin(particle.angle) * 2;
+        } else if (patternMode === "streak") {
+          particle.vx *= 0.97;
+          particle.vy *= 0.97;
+        } else if (patternMode === "constellation") {
+          particle.vx *= 0.98;
+          particle.vy *= 0.98;
+        } else if (patternMode === "grid") {
+          particle.vx *= 0.95;
+          particle.vy *= 0.95;
         } else {
           particle.vx *= 0.99;
           particle.vy += 0.02; // slight gravity
