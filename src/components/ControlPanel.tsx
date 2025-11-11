@@ -1,5 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import { Slider } from "@/components/ui/slider";
 import { Moon, Sun, Palette, Sparkles, Waves, Grid3x3 } from "lucide-react";
 
 interface ControlPanelProps {
@@ -9,6 +10,8 @@ interface ControlPanelProps {
   onColorSchemeChange: (scheme: string) => void;
   patternMode: "particles" | "fractals" | "waves" | "streak" | "laser" | "lightning" | "constellation" | "grid" | "ribbon";
   onPatternModeChange: (mode: "particles" | "fractals" | "waves" | "streak" | "laser" | "lightning" | "constellation" | "grid" | "ribbon") => void;
+  scale: number;
+  onScaleChange: (scale: number) => void;
   onClear: () => void;
 }
 
@@ -51,6 +54,8 @@ export const ControlPanel = ({
   onColorSchemeChange,
   patternMode,
   onPatternModeChange,
+  scale,
+  onScaleChange,
   onClear,
 }: ControlPanelProps) => {
   return (
@@ -120,6 +125,22 @@ export const ControlPanel = ({
               );
             })}
           </div>
+        </div>
+
+        {/* Scale Slider */}
+        <div className="space-y-2">
+          <div className="flex items-center justify-between">
+            <span className="text-sm font-medium text-foreground">Scale:</span>
+            <span className="text-xs text-muted-foreground">{scale.toFixed(1)}x</span>
+          </div>
+          <Slider
+            value={[scale]}
+            onValueChange={(value) => onScaleChange(value[0])}
+            min={0.5}
+            max={3}
+            step={0.1}
+            className="w-full"
+          />
         </div>
 
         {/* Clear Button */}

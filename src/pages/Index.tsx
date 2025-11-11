@@ -7,6 +7,7 @@ const Index = () => {
   const [isDarkMode, setIsDarkMode] = useState(true);
   const [colorScheme, setColorScheme] = useState("cyan");
   const [patternMode, setPatternMode] = useState<"particles" | "fractals" | "waves" | "streak" | "laser" | "lightning" | "constellation" | "grid" | "ribbon">("particles");
+  const [scale, setScale] = useState(1);
   const [clearTrigger, setClearTrigger] = useState(0);
 
   const getColorPalette = (scheme: string): string[] => {
@@ -64,6 +65,7 @@ const Index = () => {
           isDarkMode={isDarkMode}
           colorPalette={getColorPalette(colorScheme)}
           patternMode={patternMode}
+          scale={scale}
         />
         <ControlPanel
           isDarkMode={isDarkMode}
@@ -72,6 +74,8 @@ const Index = () => {
           onColorSchemeChange={setColorScheme}
           patternMode={patternMode}
           onPatternModeChange={setPatternMode}
+          scale={scale}
+          onScaleChange={setScale}
           onClear={() => setClearTrigger((prev) => prev + 1)}
         />
         <InfoOverlay />

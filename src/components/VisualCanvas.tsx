@@ -28,9 +28,10 @@ interface VisualCanvasProps {
   isDarkMode: boolean;
   colorPalette: string[];
   patternMode: "particles" | "fractals" | "waves" | "streak" | "laser" | "lightning" | "constellation" | "grid" | "ribbon";
+  scale: number;
 }
 
-export const VisualCanvas = ({ isDarkMode, colorPalette, patternMode }: VisualCanvasProps) => {
+export const VisualCanvas = ({ isDarkMode, colorPalette, patternMode, scale }: VisualCanvasProps) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const particlesRef = useRef<Particle[]>([]);
   const mouseRef = useRef({ x: 0, y: 0, isMoving: false });
@@ -125,7 +126,7 @@ export const VisualCanvas = ({ isDarkMode, colorPalette, patternMode }: VisualCa
     const createParticle = (x: number, y: number, angle?: number, isBurst = false, pattern?: any) => {
       const color = colorPalette[Math.floor(Math.random() * colorPalette.length)];
       const particleAngle = angle ?? Math.random() * Math.PI * 2;
-      const speed = isBurst ? 3 + Math.random() * 5 : 1 + Math.random() * 2;
+      const speed = (isBurst ? 3 + Math.random() * 5 : 1 + Math.random() * 2) * scale;
 
       particlesRef.current.push({
         x,
@@ -134,7 +135,7 @@ export const VisualCanvas = ({ isDarkMode, colorPalette, patternMode }: VisualCa
         vy: Math.sin(particleAngle) * speed,
         life: 1,
         maxLife: 1,
-        size: patternMode === "fractals" ? 2 + Math.random() * 4 : 3 + Math.random() * 6,
+        size: (patternMode === "fractals" ? 2 + Math.random() * 4 : 3 + Math.random() * 6) * scale,
         color,
         angle: particleAngle,
         speed,
@@ -149,7 +150,7 @@ export const VisualCanvas = ({ isDarkMode, colorPalette, patternMode }: VisualCa
 
       switch (chosenPattern) {
         case "spiral":
-          const spiralPoints = generateSpiralPoints(x, y, 50);
+          const spiralPoints = generateSpiralPoints(x, y, Math.floor(50 * scale));
           spiralPoints.forEach((point, i) => {
             const angle = Math.atan2(point.y - y, point.x - x);
             createParticle(point.x, point.y, angle, false, { type: "spiral" });
@@ -157,7 +158,7 @@ export const VisualCanvas = ({ isDarkMode, colorPalette, patternMode }: VisualCa
           break;
 
         case "sacred":
-          const sacredPoints = generateSacredGeometryPoints(x, y, 50, 2);
+          const sacredPoints = generateSacredGeometryPoints(x, y, 50 * scale, 2);
           sacredPoints.forEach((point) => {
             const angle = Math.atan2(point.y - y, point.x - x);
             createParticle(point.x, point.y, angle, false, { type: "sacred" });
@@ -165,7 +166,7 @@ export const VisualCanvas = ({ isDarkMode, colorPalette, patternMode }: VisualCa
           break;
 
         case "recursive":
-          const recursivePoints = generateRecursivePattern(x, y, 40, 0, 3);
+          const recursivePoints = generateRecursivePattern(x, y, 40 * scale, 0, 3);
           recursivePoints.forEach((point) => {
             const angle = Math.atan2(point.y - y, point.x - x);
             createParticle(point.x, point.y, angle, false, { type: "recursive" });
@@ -173,7 +174,7 @@ export const VisualCanvas = ({ isDarkMode, colorPalette, patternMode }: VisualCa
           break;
 
         case "sierpinski":
-          const size = 100;
+          const size = 100 * scale;
           const sierpinskiPoints = generateSierpinskiTriangle(
             x, y - size,
             x - size, y + size,
@@ -186,7 +187,7 @@ export const VisualCanvas = ({ isDarkMode, colorPalette, patternMode }: VisualCa
           break;
 
         case "dragon":
-          const dragonPoints = generateDragonCurve(x, y, 80, 0, 0, 8);
+          const dragonPoints = generateDragonCurve(x, y, 80 * scale, 0, 0, 8);
           dragonPoints.forEach((point) => {
             createParticle(point.x, point.y, undefined, false, { type: "dragon" });
           });
@@ -196,13 +197,13 @@ export const VisualCanvas = ({ isDarkMode, colorPalette, patternMode }: VisualCa
           // Create mandelbrot-inspired burst
           for (let i = 0; i < 200; i++) {
             const angle = Math.random() * Math.PI * 2;
-            const dist = Math.random() * 100;
+            const dist = Math.random() * 100 * scale;
             const px = x + Math.cos(angle) * dist;
             const py = y + Math.sin(angle) * dist;
             
             const mandelbrotValue = generateMandelbrotPoint(
-              (px - x) / 50,
-              (py - y) / 50
+              (px - x) / (50 * scale),
+              (py - y) / (50 * scale)
             );
             
             if (mandelbrotValue < 0.8) {
@@ -218,7 +219,7 @@ export const VisualCanvas = ({ isDarkMode, colorPalette, patternMode }: VisualCa
 
     const createLaserBeam = (x: number, y: number) => {
       const angle = Math.random() * Math.PI * 2;
-      const length = 200 + Math.random() * 400;
+      const length = (200 + Math.random() * 400) * scale;
       const color = colorPalette[Math.floor(Math.random() * colorPalette.length)];
       
       laserBeamsRef.current.push({
@@ -234,7 +235,7 @@ export const VisualCanvas = ({ isDarkMode, colorPalette, patternMode }: VisualCa
     const createLaserShowBurst = (x: number, y: number) => {
       for (let i = 0; i < 20; i++) {
         const angle = (Math.PI * 2 * i) / 20;
-        const length = 300 + Math.random() * 200;
+        const length = (300 + Math.random() * 200) * scale;
         const color = colorPalette[Math.floor(Math.random() * colorPalette.length)];
         
         laserBeamsRef.current.push({
@@ -249,8 +250,8 @@ export const VisualCanvas = ({ isDarkMode, colorPalette, patternMode }: VisualCa
     };
 
     const createLightning = (x: number, y: number) => {
-      const endX = x + (Math.random() - 0.5) * 400;
-      const endY = y + (Math.random() - 0.5) * 400;
+      const endX = x + (Math.random() - 0.5) * 400 * scale;
+      const endY = y + (Math.random() - 0.5) * 400 * scale;
       const color = colorPalette[Math.floor(Math.random() * colorPalette.length)];
       
       // Create jagged lightning path
@@ -259,8 +260,8 @@ export const VisualCanvas = ({ isDarkMode, colorPalette, patternMode }: VisualCa
       let currentY = y;
       
       for (let i = 0; i < segments; i++) {
-        const nextX = x + (endX - x) * (i + 1) / segments + (Math.random() - 0.5) * 50;
-        const nextY = y + (endY - y) * (i + 1) / segments + (Math.random() - 0.5) * 50;
+        const nextX = x + (endX - x) * (i + 1) / segments + (Math.random() - 0.5) * 50 * scale;
+        const nextY = y + (endY - y) * (i + 1) / segments + (Math.random() - 0.5) * 50 * scale;
         
         laserBeamsRef.current.push({
           x1: currentX,
@@ -277,7 +278,7 @@ export const VisualCanvas = ({ isDarkMode, colorPalette, patternMode }: VisualCa
     };
 
     const createGridExplosion = (x: number, y: number) => {
-      const gridSize = 30;
+      const gridSize = 30 * scale;
       for (let i = -5; i <= 5; i++) {
         for (let j = -5; j <= 5; j++) {
           const px = x + i * gridSize;
@@ -299,12 +300,12 @@ export const VisualCanvas = ({ isDarkMode, colorPalette, patternMode }: VisualCa
       if (patternMode === "streak" && mouseTrailRef.current.length > 1) {
         ctx.save();
         ctx.strokeStyle = colorPalette[0];
-        ctx.lineWidth = 3;
+        ctx.lineWidth = 3 * scale;
         ctx.lineCap = "round";
         ctx.lineJoin = "round";
         
         if (isDarkMode) {
-          ctx.shadowBlur = 20;
+          ctx.shadowBlur = 20 * scale;
           ctx.shadowColor = colorPalette[0];
         }
         
@@ -326,11 +327,11 @@ export const VisualCanvas = ({ isDarkMode, colorPalette, patternMode }: VisualCa
           if (beam.life > 0) {
             ctx.save();
             ctx.strokeStyle = beam.color;
-            ctx.lineWidth = patternMode === "lightning" ? 2 + Math.random() * 3 : 3;
+            ctx.lineWidth = (patternMode === "lightning" ? 2 + Math.random() * 3 : 3) * scale;
             ctx.globalAlpha = beam.life;
             
             if (isDarkMode) {
-              ctx.shadowBlur = 25;
+              ctx.shadowBlur = 25 * scale;
               ctx.shadowColor = beam.color;
             }
             
@@ -349,7 +350,7 @@ export const VisualCanvas = ({ isDarkMode, colorPalette, patternMode }: VisualCa
       if (patternMode === "constellation" && particlesRef.current.length > 1) {
         ctx.save();
         ctx.strokeStyle = colorPalette[0];
-        ctx.lineWidth = 1;
+        ctx.lineWidth = 1 * scale;
         ctx.globalAlpha = 0.3;
         
         for (let i = 0; i < particlesRef.current.length; i++) {
@@ -358,8 +359,8 @@ export const VisualCanvas = ({ isDarkMode, colorPalette, patternMode }: VisualCa
             const p2 = particlesRef.current[j];
             const dist = Math.hypot(p2.x - p1.x, p2.y - p1.y);
             
-            if (dist < 150) {
-              ctx.globalAlpha = (1 - dist / 150) * 0.5;
+            if (dist < 150 * scale) {
+              ctx.globalAlpha = (1 - dist / (150 * scale)) * 0.5;
               ctx.beginPath();
               ctx.moveTo(p1.x, p1.y);
               ctx.lineTo(p2.x, p2.y);
@@ -374,10 +375,10 @@ export const VisualCanvas = ({ isDarkMode, colorPalette, patternMode }: VisualCa
       if (patternMode === "grid") {
         ctx.save();
         ctx.strokeStyle = colorPalette[0];
-        ctx.lineWidth = 0.5;
+        ctx.lineWidth = 0.5 * scale;
         ctx.globalAlpha = 0.2;
         
-        const gridSize = 40;
+        const gridSize = 40 * scale;
         for (let x = 0; x < canvas.width; x += gridSize) {
           ctx.beginPath();
           ctx.moveTo(x, 0);
@@ -436,14 +437,14 @@ export const VisualCanvas = ({ isDarkMode, colorPalette, patternMode }: VisualCa
           
           // Enhanced glow effect for OLED
           if (isDarkMode) {
-            ctx.shadowBlur = 20;
+            ctx.shadowBlur = 20 * scale;
             ctx.shadowColor = particle.color;
           }
           
           ctx.globalAlpha = particle.life;
           ctx.fillStyle = particle.color;
           ctx.strokeStyle = particle.color;
-          ctx.lineWidth = 2;
+          ctx.lineWidth = 2 * scale;
           
           if (patternMode === "fractals" || particle.pattern) {
             // Draw complex fractal shapes based on pattern type
