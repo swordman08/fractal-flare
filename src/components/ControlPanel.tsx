@@ -8,8 +8,8 @@ interface ControlPanelProps {
   onToggleDarkMode: () => void;
   colorScheme: string;
   onColorSchemeChange: (scheme: string) => void;
-  patternMode: "particles" | "fractals" | "waves" | "streak" | "laser" | "lightning" | "constellation" | "grid" | "ribbon";
-  onPatternModeChange: (mode: "particles" | "fractals" | "waves" | "streak" | "laser" | "lightning" | "constellation" | "grid" | "ribbon") => void;
+  patternMode: "particles" | "fractals" | "waves" | "streak" | "laser" | "lightning" | "constellation" | "grid" | "ribbon" | "strobe" | "pulse" | "firework";
+  onPatternModeChange: (mode: "particles" | "fractals" | "waves" | "streak" | "laser" | "lightning" | "constellation" | "grid" | "ribbon" | "strobe" | "pulse" | "firework") => void;
   scale: number;
   onScaleChange: (scale: number) => void;
   onClear: () => void;
@@ -32,6 +32,9 @@ const colorSchemes = [
   { name: "Sunset", value: "sunset" },
   { name: "Matrix", value: "matrix" },
   { name: "Plasma", value: "plasma" },
+  { name: "Rave", value: "rave" },
+  { name: "Festival", value: "festival" },
+  { name: "Laser Show", value: "laser-show" },
   { name: "Random", value: "random" },
 ];
 
@@ -45,6 +48,9 @@ const patternModes = [
   { name: "Constellation", value: "constellation" as const, icon: Sparkles },
   { name: "Grid", value: "grid" as const, icon: Grid3x3 },
   { name: "Ribbon", value: "ribbon" as const, icon: Waves },
+  { name: "Strobe", value: "strobe" as const, icon: Sparkles },
+  { name: "Pulse", value: "pulse" as const, icon: Waves },
+  { name: "Firework", value: "firework" as const, icon: Sparkles },
 ];
 
 export const ControlPanel = ({

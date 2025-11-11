@@ -20,14 +20,14 @@ interface Particle {
   color: string;
   angle: number;
   speed: number;
-  pattern?: "mandelbrot" | "spiral" | "sacred" | "lissajous" | "recursive" | "sierpinski" | "dragon";
+  pattern?: "mandelbrot" | "spiral" | "sacred" | "lissajous" | "recursive" | "sierpinski" | "dragon" | "firework";
   patternData?: any;
 }
 
 interface VisualCanvasProps {
   isDarkMode: boolean;
   colorPalette: string[];
-  patternMode: "particles" | "fractals" | "waves" | "streak" | "laser" | "lightning" | "constellation" | "grid" | "ribbon";
+  patternMode: "particles" | "fractals" | "waves" | "streak" | "laser" | "lightning" | "constellation" | "grid" | "ribbon" | "strobe" | "pulse" | "firework";
   scale: number;
 }
 
@@ -38,6 +38,8 @@ export const VisualCanvas = ({ isDarkMode, colorPalette, patternMode, scale }: V
   const mouseTrailRef = useRef<{ x: number; y: number }[]>([]);
   const laserBeamsRef = useRef<{ x1: number; y1: number; x2: number; y2: number; life: number; color: string }[]>([]);
   const gridNodesRef = useRef<{ x: number; y: number; active: boolean }[]>([]);
+  const strobeFlashRef = useRef<{ active: boolean; intensity: number; lastFlash: number }>({ active: false, intensity: 0, lastFlash: 0 });
+  const pulseRingsRef = useRef<{ x: number; y: number; radius: number; maxRadius: number; life: number; color: string }[]>([]);
   const animationRef = useRef<number>();
 
   useEffect(() => {
@@ -84,6 +86,18 @@ export const VisualCanvas = ({ isDarkMode, colorPalette, patternMode, scale }: V
         for (let i = 0; i < 2; i++) {
           createParticle(e.clientX, e.clientY);
         }
+      } else if (patternMode === "strobe") {
+        if (Math.random() > 0.8) {
+          createStrobeFlash();
+        }
+      } else if (patternMode === "pulse") {
+        if (Math.random() > 0.95) {
+          createPulseRing(e.clientX, e.clientY);
+        }
+      } else if (patternMode === "firework") {
+        if (Math.random() > 0.95) {
+          createFirework(e.clientX, e.clientY);
+        }
       } else {
         // Default particle trail
         for (let i = 0; i < 3; i++) {
@@ -104,6 +118,12 @@ export const VisualCanvas = ({ isDarkMode, colorPalette, patternMode, scale }: V
         }
       } else if (patternMode === "grid") {
         createGridExplosion(e.clientX, e.clientY);
+      } else if (patternMode === "strobe") {
+        createStrobeFlash();
+      } else if (patternMode === "pulse") {
+        createPulseRing(e.clientX, e.clientY);
+      } else if (patternMode === "firework") {
+        createFirework(e.clientX, e.clientY);
       } else {
         const particleCount = 30;
         for (let i = 0; i < particleCount; i++) {
@@ -113,13 +133,32 @@ export const VisualCanvas = ({ isDarkMode, colorPalette, patternMode, scale }: V
       }
     };
 
-    // Keyboard handler
+    // Keyboard handler - triggers the selected pattern
     const handleKeyPress = (e: KeyboardEvent) => {
       const x = Math.random() * canvas.width;
       const y = Math.random() * canvas.height;
       
-      for (let i = 0; i < 20; i++) {
-        createParticle(x, y);
+      if (patternMode === "fractals") {
+        createFractalBurst(x, y);
+      } else if (patternMode === "laser") {
+        createLaserShowBurst(x, y);
+      } else if (patternMode === "lightning") {
+        for (let i = 0; i < 5; i++) {
+          createLightning(x, y);
+        }
+      } else if (patternMode === "grid") {
+        createGridExplosion(x, y);
+      } else if (patternMode === "strobe") {
+        createStrobeFlash();
+      } else if (patternMode === "pulse") {
+        createPulseRing(x, y);
+      } else if (patternMode === "firework") {
+        createFirework(x, y);
+      } else {
+        // Default particle burst for other modes
+        for (let i = 0; i < 20; i++) {
+          createParticle(x, y);
+        }
       }
     };
 
@@ -289,11 +328,103 @@ export const VisualCanvas = ({ isDarkMode, colorPalette, patternMode, scale }: V
       }
     };
 
+    const createStrobeFlash = () => {
+      strobeFlashRef.current = {
+        active: true,
+        intensity: 1,
+        lastFlash: Date.now(),
+      };
+      
+      // Create explosive particles everywhere
+      for (let i = 0; i < 100; i++) {
+        const x = Math.random() * canvas.width;
+        const y = Math.random() * canvas.height;
+        createParticle(x, y, undefined, true);
+      }
+    };
+
+    const createPulseRing = (x: number, y: number) => {
+      const color = colorPalette[Math.floor(Math.random() * colorPalette.length)];
+      pulseRingsRef.current.push({
+        x,
+        y,
+        radius: 0,
+        maxRadius: (200 + Math.random() * 300) * scale,
+        life: 1,
+        color,
+      });
+    };
+
+    const createFirework = (x: number, y: number) => {
+      // Launch particle that explodes
+      const launchParticle = {
+        x,
+        y: canvas.height,
+        targetY: y,
+        exploded: false,
+      };
+      
+      // Animate launch and explosion
+      const animateLaunch = () => {
+        launchParticle.y -= 8 * scale;
+        
+        if (launchParticle.y <= launchParticle.targetY && !launchParticle.exploded) {
+          launchParticle.exploded = true;
+          
+          // Create explosion
+          const particleCount = 60 + Math.floor(Math.random() * 40);
+          for (let i = 0; i < particleCount; i++) {
+            const angle = (Math.PI * 2 * i) / particleCount + Math.random() * 0.5;
+            const speed = (2 + Math.random() * 6) * scale;
+            const color = colorPalette[Math.floor(Math.random() * colorPalette.length)];
+            
+            particlesRef.current.push({
+              x,
+              y: launchParticle.targetY,
+              vx: Math.cos(angle) * speed,
+              vy: Math.sin(angle) * speed,
+              life: 1,
+              maxLife: 1,
+              size: (2 + Math.random() * 4) * scale,
+              color,
+              angle,
+              speed,
+              pattern: "firework" as const,
+            });
+          }
+          
+          // Create pulse ring at explosion
+          createPulseRing(x, launchParticle.targetY);
+        }
+      };
+      
+      // Run launch animation
+      const launchInterval = setInterval(() => {
+        if (launchParticle.exploded) {
+          clearInterval(launchInterval);
+        } else {
+          animateLaunch();
+        }
+      }, 16);
+    };
+
     const drawParticles = () => {
       if (!canvas || !ctx) return;
 
-      // Clear with background color
-      ctx.fillStyle = isDarkMode ? "#000000" : "#FFFFFF";
+      // Clear with background color (with strobe effect)
+      if (patternMode === "strobe" && strobeFlashRef.current.active) {
+        const timeSinceFlash = Date.now() - strobeFlashRef.current.lastFlash;
+        if (timeSinceFlash < 100) {
+          // White flash
+          ctx.fillStyle = isDarkMode ? "#FFFFFF" : "#000000";
+          strobeFlashRef.current.intensity = 1 - timeSinceFlash / 100;
+        } else {
+          strobeFlashRef.current.active = false;
+          ctx.fillStyle = isDarkMode ? "#000000" : "#FFFFFF";
+        }
+      } else {
+        ctx.fillStyle = isDarkMode ? "#000000" : "#FFFFFF";
+      }
       ctx.fillRect(0, 0, canvas.width, canvas.height);
 
       // Draw streak trail
@@ -394,6 +525,41 @@ export const VisualCanvas = ({ isDarkMode, colorPalette, patternMode, scale }: V
         ctx.restore();
       }
 
+      // Draw pulse rings
+      if (patternMode === "pulse" || pulseRingsRef.current.length > 0) {
+        pulseRingsRef.current = pulseRingsRef.current.filter((ring) => {
+          ring.radius += 4 * scale;
+          ring.life -= 0.015;
+          
+          if (ring.life > 0 && ring.radius < ring.maxRadius) {
+            ctx.save();
+            ctx.strokeStyle = ring.color;
+            ctx.lineWidth = (6 - ring.radius / ring.maxRadius * 4) * scale;
+            ctx.globalAlpha = ring.life;
+            
+            if (isDarkMode) {
+              ctx.shadowBlur = 30 * scale;
+              ctx.shadowColor = ring.color;
+            }
+            
+            ctx.beginPath();
+            ctx.arc(ring.x, ring.y, ring.radius, 0, Math.PI * 2);
+            ctx.stroke();
+            
+            // Inner ring for depth
+            ctx.globalAlpha = ring.life * 0.5;
+            ctx.lineWidth = 2 * scale;
+            ctx.beginPath();
+            ctx.arc(ring.x, ring.y, ring.radius * 0.8, 0, Math.PI * 2);
+            ctx.stroke();
+            
+            ctx.restore();
+          }
+          
+          return ring.life > 0 && ring.radius < ring.maxRadius;
+        });
+      }
+
       // Update and draw particles
       particlesRef.current = particlesRef.current.filter((particle) => {
         // Update physics
@@ -426,6 +592,15 @@ export const VisualCanvas = ({ isDarkMode, colorPalette, patternMode, scale }: V
         } else if (patternMode === "grid") {
           particle.vx *= 0.95;
           particle.vy *= 0.95;
+        } else if (patternMode === "pulse") {
+          particle.vx *= 0.96;
+          particle.vy *= 0.96;
+        } else if (patternMode === "firework" || particle.pattern === "firework") {
+          particle.vx *= 0.98;
+          particle.vy += 0.15 * scale; // gravity for falling effect
+        } else if (patternMode === "strobe") {
+          particle.vx *= 0.92;
+          particle.vy *= 0.92;
         } else {
           particle.vx *= 0.99;
           particle.vy += 0.02; // slight gravity

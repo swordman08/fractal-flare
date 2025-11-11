@@ -6,7 +6,7 @@ import { InfoOverlay } from "@/components/InfoOverlay";
 const Index = () => {
   const [isDarkMode, setIsDarkMode] = useState(true);
   const [colorScheme, setColorScheme] = useState("cyan");
-  const [patternMode, setPatternMode] = useState<"particles" | "fractals" | "waves" | "streak" | "laser" | "lightning" | "constellation" | "grid" | "ribbon">("particles");
+  const [patternMode, setPatternMode] = useState<"particles" | "fractals" | "waves" | "streak" | "laser" | "lightning" | "constellation" | "grid" | "ribbon" | "strobe" | "pulse" | "firework">("particles");
   const [scale, setScale] = useState(1);
   const [clearTrigger, setClearTrigger] = useState(0);
 
@@ -44,6 +44,12 @@ const Index = () => {
         return ["#00FF00", "#00DD00", "#00BB00", "#009900", "#00FF41"];
       case "plasma":
         return ["#FF00FF", "#FF0080", "#FF00FF", "#8000FF", "#00FFFF"];
+      case "rave":
+        return ["#FF1493", "#00FFFF", "#FFFF00", "#00FF00", "#FF00FF", "#FF0080"];
+      case "festival":
+        return ["#FF4500", "#FF00FF", "#FFFF00", "#00BFFF", "#FF1493", "#00FF7F"];
+      case "laser-show":
+        return ["#FF0000", "#00FF00", "#0000FF", "#FFFF00", "#FF00FF", "#00FFFF"];
       case "random":
         // Generate random vibrant colors
         return Array.from({ length: 8 }, () => {
