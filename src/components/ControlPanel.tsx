@@ -1,0 +1,117 @@
+import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
+import { Moon, Sun, Palette, Sparkles, Waves, Grid3x3 } from "lucide-react";
+
+interface ControlPanelProps {
+  isDarkMode: boolean;
+  onToggleDarkMode: () => void;
+  colorScheme: string;
+  onColorSchemeChange: (scheme: string) => void;
+  patternMode: "particles" | "fractals" | "waves";
+  onPatternModeChange: (mode: "particles" | "fractals" | "waves") => void;
+  onClear: () => void;
+}
+
+const colorSchemes = [
+  { name: "Cyan Dream", value: "cyan" },
+  { name: "Magenta Pulse", value: "magenta" },
+  { name: "Rainbow", value: "rainbow" },
+  { name: "Purple Haze", value: "purple" },
+];
+
+const patternModes = [
+  { name: "Particles", value: "particles" as const, icon: Sparkles },
+  { name: "Fractals", value: "fractals" as const, icon: Grid3x3 },
+  { name: "Waves", value: "waves" as const, icon: Waves },
+];
+
+export const ControlPanel = ({
+  isDarkMode,
+  onToggleDarkMode,
+  colorScheme,
+  onColorSchemeChange,
+  patternMode,
+  onPatternModeChange,
+  onClear,
+}: ControlPanelProps) => {
+  return (
+    <Card className="fixed top-4 right-4 p-4 bg-card/80 backdrop-blur-lg border-border shadow-lg z-10">
+      <div className="flex flex-col gap-4">
+        {/* Background Toggle */}
+        <div className="flex items-center gap-2">
+          <span className="text-sm font-medium text-foreground">Background:</span>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={onToggleDarkMode}
+            className="gap-2"
+          >
+            {isDarkMode ? (
+              <>
+                <Moon className="h-4 w-4" />
+                Dark
+              </>
+            ) : (
+              <>
+                <Sun className="h-4 w-4" />
+                Light
+              </>
+            )}
+          </Button>
+        </div>
+
+        {/* Color Scheme */}
+        <div className="space-y-2">
+          <div className="flex items-center gap-2">
+            <Palette className="h-4 w-4 text-foreground" />
+            <span className="text-sm font-medium text-foreground">Colors:</span>
+          </div>
+          <div className="grid grid-cols-2 gap-2">
+            {colorSchemes.map((scheme) => (
+              <Button
+                key={scheme.value}
+                variant={colorScheme === scheme.value ? "default" : "outline"}
+                size="sm"
+                onClick={() => onColorSchemeChange(scheme.value)}
+                className="text-xs"
+              >
+                {scheme.name}
+              </Button>
+            ))}
+          </div>
+        </div>
+
+        {/* Pattern Mode */}
+        <div className="space-y-2">
+          <span className="text-sm font-medium text-foreground">Pattern:</span>
+          <div className="grid grid-cols-3 gap-2">
+            {patternModes.map((mode) => {
+              const Icon = mode.icon;
+              return (
+                <Button
+                  key={mode.value}
+                  variant={patternMode === mode.value ? "default" : "outline"}
+                  size="sm"
+                  onClick={() => onPatternModeChange(mode.value)}
+                  className="gap-1 p-2"
+                >
+                  <Icon className="h-3 w-3" />
+                </Button>
+              );
+            })}
+          </div>
+        </div>
+
+        {/* Clear Button */}
+        <Button
+          variant="secondary"
+          size="sm"
+          onClick={onClear}
+          className="w-full"
+        >
+          Clear Canvas
+        </Button>
+      </div>
+    </Card>
+  );
+};
