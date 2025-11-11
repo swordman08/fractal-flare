@@ -1,4 +1,13 @@
 import { useEffect, useRef, useState } from "react";
+import {
+  generateMandelbrotPoint,
+  generateSpiralPoints,
+  generateSacredGeometryPoints,
+  generateLissajousPoint,
+  generateRecursivePattern,
+  generateSierpinskiTriangle,
+  generateDragonCurve,
+} from "@/utils/fractalPatterns";
 
 interface Particle {
   x: number;
@@ -11,6 +20,8 @@ interface Particle {
   color: string;
   angle: number;
   speed: number;
+  pattern?: "mandelbrot" | "spiral" | "sacred" | "lissajous" | "recursive" | "sierpinski" | "dragon";
+  patternData?: any;
 }
 
 interface VisualCanvasProps {
@@ -50,12 +61,16 @@ export const VisualCanvas = ({ isDarkMode, colorPalette, patternMode }: VisualCa
       }
     };
 
-    // Click handler - create burst
+    // Click handler - create burst with fractal patterns
     const handleClick = (e: MouseEvent) => {
-      const particleCount = patternMode === "fractals" ? 50 : 30;
-      for (let i = 0; i < particleCount; i++) {
-        const angle = (Math.PI * 2 * i) / particleCount;
-        createParticle(e.clientX, e.clientY, angle, true);
+      if (patternMode === "fractals") {
+        createFractalBurst(e.clientX, e.clientY);
+      } else {
+        const particleCount = 30;
+        for (let i = 0; i < particleCount; i++) {
+          const angle = (Math.PI * 2 * i) / particleCount;
+          createParticle(e.clientX, e.clientY, angle, true);
+        }
       }
     };
 
@@ -69,7 +84,7 @@ export const VisualCanvas = ({ isDarkMode, colorPalette, patternMode }: VisualCa
       }
     };
 
-    const createParticle = (x: number, y: number, angle?: number, isBurst = false) => {
+    const createParticle = (x: number, y: number, angle?: number, isBurst = false, pattern?: any) => {
       const color = colorPalette[Math.floor(Math.random() * colorPalette.length)];
       const particleAngle = angle ?? Math.random() * Math.PI * 2;
       const speed = isBurst ? 3 + Math.random() * 5 : 1 + Math.random() * 2;
@@ -85,7 +100,82 @@ export const VisualCanvas = ({ isDarkMode, colorPalette, patternMode }: VisualCa
         color,
         angle: particleAngle,
         speed,
+        pattern: pattern?.type,
+        patternData: pattern?.data,
       });
+    };
+
+    const createFractalBurst = (x: number, y: number) => {
+      const patterns = ["spiral", "sacred", "recursive", "sierpinski", "dragon", "mandelbrot"];
+      const chosenPattern = patterns[Math.floor(Math.random() * patterns.length)];
+
+      switch (chosenPattern) {
+        case "spiral":
+          const spiralPoints = generateSpiralPoints(x, y, 50);
+          spiralPoints.forEach((point, i) => {
+            const angle = Math.atan2(point.y - y, point.x - x);
+            createParticle(point.x, point.y, angle, false, { type: "spiral" });
+          });
+          break;
+
+        case "sacred":
+          const sacredPoints = generateSacredGeometryPoints(x, y, 50, 2);
+          sacredPoints.forEach((point) => {
+            const angle = Math.atan2(point.y - y, point.x - x);
+            createParticle(point.x, point.y, angle, false, { type: "sacred" });
+          });
+          break;
+
+        case "recursive":
+          const recursivePoints = generateRecursivePattern(x, y, 40, 0, 3);
+          recursivePoints.forEach((point) => {
+            const angle = Math.atan2(point.y - y, point.x - x);
+            createParticle(point.x, point.y, angle, false, { type: "recursive" });
+          });
+          break;
+
+        case "sierpinski":
+          const size = 100;
+          const sierpinskiPoints = generateSierpinskiTriangle(
+            x, y - size,
+            x - size, y + size,
+            x + size, y + size,
+            0, 4
+          );
+          sierpinskiPoints.forEach((point) => {
+            createParticle(point.x, point.y, undefined, false, { type: "sierpinski" });
+          });
+          break;
+
+        case "dragon":
+          const dragonPoints = generateDragonCurve(x, y, 80, 0, 0, 8);
+          dragonPoints.forEach((point) => {
+            createParticle(point.x, point.y, undefined, false, { type: "dragon" });
+          });
+          break;
+
+        case "mandelbrot":
+          // Create mandelbrot-inspired burst
+          for (let i = 0; i < 200; i++) {
+            const angle = Math.random() * Math.PI * 2;
+            const dist = Math.random() * 100;
+            const px = x + Math.cos(angle) * dist;
+            const py = y + Math.sin(angle) * dist;
+            
+            const mandelbrotValue = generateMandelbrotPoint(
+              (px - x) / 50,
+              (py - y) / 50
+            );
+            
+            if (mandelbrotValue < 0.8) {
+              createParticle(px, py, angle, false, { 
+                type: "mandelbrot", 
+                data: mandelbrotValue 
+              });
+            }
+          }
+          break;
+      }
     };
 
     const drawParticles = () => {
@@ -121,33 +211,118 @@ export const VisualCanvas = ({ isDarkMode, colorPalette, patternMode }: VisualCa
         if (particle.life > 0) {
           ctx.save();
           
-          // Glow effect for OLED
+          // Enhanced glow effect for OLED
           if (isDarkMode) {
-            ctx.shadowBlur = 15;
+            ctx.shadowBlur = 20;
             ctx.shadowColor = particle.color;
           }
           
           ctx.globalAlpha = particle.life;
           ctx.fillStyle = particle.color;
+          ctx.strokeStyle = particle.color;
+          ctx.lineWidth = 2;
           
-          if (patternMode === "fractals") {
-            // Draw fractal-like shapes
-            ctx.beginPath();
-            const points = 5;
-            for (let i = 0; i < points; i++) {
-              const angle = (Math.PI * 2 * i) / points + particle.angle;
-              const x = particle.x + Math.cos(angle) * particle.size;
-              const y = particle.y + Math.sin(angle) * particle.size;
-              if (i === 0) ctx.moveTo(x, y);
-              else ctx.lineTo(x, y);
+          if (patternMode === "fractals" || particle.pattern) {
+            // Draw complex fractal shapes based on pattern type
+            switch (particle.pattern) {
+              case "mandelbrot":
+                // Complex mandelbrot visualization
+                const intensity = particle.patternData || 0.5;
+                ctx.globalAlpha = particle.life * intensity;
+                ctx.beginPath();
+                const rays = 8;
+                for (let i = 0; i < rays; i++) {
+                  const angle = (Math.PI * 2 * i) / rays + particle.angle;
+                  const length = particle.size * (1 + intensity);
+                  ctx.moveTo(particle.x, particle.y);
+                  ctx.lineTo(
+                    particle.x + Math.cos(angle) * length,
+                    particle.y + Math.sin(angle) * length
+                  );
+                }
+                ctx.stroke();
+                break;
+
+              case "spiral":
+              case "sacred":
+                // Sacred geometry circles
+                ctx.beginPath();
+                ctx.arc(particle.x, particle.y, particle.size, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.beginPath();
+                ctx.arc(particle.x, particle.y, particle.size * 1.5, 0, Math.PI * 2);
+                ctx.stroke();
+                break;
+
+              case "recursive":
+                // Branching pattern
+                ctx.beginPath();
+                for (let i = 0; i < 3; i++) {
+                  const angle = (Math.PI * 2 * i) / 3 + particle.angle;
+                  const x = particle.x + Math.cos(angle) * particle.size * 2;
+                  const y = particle.y + Math.sin(angle) * particle.size * 2;
+                  ctx.moveTo(particle.x, particle.y);
+                  ctx.lineTo(x, y);
+                }
+                ctx.stroke();
+                ctx.beginPath();
+                ctx.arc(particle.x, particle.y, particle.size / 2, 0, Math.PI * 2);
+                ctx.fill();
+                break;
+
+              case "sierpinski":
+                // Triangle pattern
+                ctx.beginPath();
+                for (let i = 0; i < 3; i++) {
+                  const angle = (Math.PI * 2 * i) / 3 + particle.angle;
+                  const x = particle.x + Math.cos(angle) * particle.size;
+                  const y = particle.y + Math.sin(angle) * particle.size;
+                  if (i === 0) ctx.moveTo(x, y);
+                  else ctx.lineTo(x, y);
+                }
+                ctx.closePath();
+                ctx.stroke();
+                break;
+
+              case "dragon":
+                // Dragon curve segments
+                ctx.beginPath();
+                ctx.arc(particle.x, particle.y, particle.size, 0, Math.PI * 2);
+                ctx.fill();
+                const dragonAngle = particle.angle + Date.now() * 0.001;
+                ctx.moveTo(particle.x, particle.y);
+                ctx.lineTo(
+                  particle.x + Math.cos(dragonAngle) * particle.size * 3,
+                  particle.y + Math.sin(dragonAngle) * particle.size * 3
+                );
+                ctx.stroke();
+                break;
+
+              default:
+                // Default fractal star
+                ctx.beginPath();
+                const points = 6;
+                for (let i = 0; i < points; i++) {
+                  const angle = (Math.PI * 2 * i) / points + particle.angle;
+                  const x = particle.x + Math.cos(angle) * particle.size;
+                  const y = particle.y + Math.sin(angle) * particle.size;
+                  if (i === 0) ctx.moveTo(x, y);
+                  else ctx.lineTo(x, y);
+                }
+                ctx.closePath();
+                ctx.fill();
             }
-            ctx.closePath();
-            ctx.fill();
           } else {
-            // Draw circles
+            // Draw enhanced circles with ring
             ctx.beginPath();
             ctx.arc(particle.x, particle.y, particle.size, 0, Math.PI * 2);
             ctx.fill();
+            
+            // Add outer ring for depth
+            ctx.globalAlpha = particle.life * 0.3;
+            ctx.beginPath();
+            ctx.arc(particle.x, particle.y, particle.size * 1.5, 0, Math.PI * 2);
+            ctx.stroke();
           }
           
           ctx.restore();

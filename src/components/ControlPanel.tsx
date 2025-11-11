@@ -17,6 +17,19 @@ const colorSchemes = [
   { name: "Magenta Pulse", value: "magenta" },
   { name: "Rainbow", value: "rainbow" },
   { name: "Purple Haze", value: "purple" },
+  { name: "Electric", value: "electric" },
+  { name: "Ocean", value: "ocean" },
+  { name: "Fire", value: "fire" },
+  { name: "Aurora", value: "aurora" },
+  { name: "Synthwave", value: "synthwave" },
+  { name: "Vaporwave", value: "vaporwave" },
+  { name: "Cosmic", value: "cosmic" },
+  { name: "Neon City", value: "neon-city" },
+  { name: "Toxic", value: "toxic" },
+  { name: "Sunset", value: "sunset" },
+  { name: "Matrix", value: "matrix" },
+  { name: "Plasma", value: "plasma" },
+  { name: "Random", value: "random" },
 ];
 
 const patternModes = [
@@ -66,7 +79,7 @@ export const ControlPanel = ({
             <Palette className="h-4 w-4 text-foreground" />
             <span className="text-sm font-medium text-foreground">Colors:</span>
           </div>
-          <div className="grid grid-cols-2 gap-2">
+          <div className="grid grid-cols-2 gap-2 max-h-64 overflow-y-auto pr-1">
             {colorSchemes.map((scheme) => (
               <Button
                 key={scheme.value}
