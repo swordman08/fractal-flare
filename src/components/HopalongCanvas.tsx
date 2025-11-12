@@ -1,5 +1,5 @@
 import { useRef, useEffect, useState } from "react";
-import { Canvas, useFrame } from "@react-three/fiber";
+import { Canvas, useFrame, useThree } from "@react-three/fiber";
 import * as THREE from "three";
 import { Stats } from "@/utils/stats";
 
@@ -8,40 +8,56 @@ interface HopalongCanvasProps {
   speed: number;
 }
 
-const SCALE_FACTOR = 2000;
+const SCALE_FACTOR = 1500;
+const CAMERA_BOUND = 200;
 const NUM_POINTS_SUBSET = 15000;
-const NUM_SUBSETS = 6;
-const NUM_LEVELS = 5;
-const LEVEL_DEPTH = 400;
+const NUM_SUBSETS = 7;
+const NUM_LEVELS = 7;
+const LEVEL_DEPTH = 600;
+const DEF_BRIGHTNESS = 1;
+const DEF_SATURATION = 0.8;
+
+// Orbit parameters constraints (from original)
+const A_MIN = -30;
+const A_MAX = 30;
+const B_MIN = 0.2;
+const B_MAX = 1.8;
+const C_MIN = 5;
+const C_MAX = 17;
+const D_MIN = 0;
+const D_MAX = 10;
+const E_MIN = 0;
+const E_MAX = 12;
 
 interface OrbitData {
   positions: Float32Array;
   colors: Float32Array;
 }
 
-const generateHopalongOrbit = (colorPalette: string[], hueOffset: number): OrbitData => {
-  // Parameter ranges from original
-  const a = -30 + Math.random() * 60;
-  const b = 0.2 + Math.random() * 1.6;
-  const c = 5 + Math.random() * 12;
-  const d = Math.random() * 10;
-  const e = Math.random() * 12;
+const generateHopalongOrbit = (hueValue: number, subset: number): OrbitData => {
+  // Use exact parameter ranges from original
+  const a = A_MIN + Math.random() * (A_MAX - A_MIN);
+  const b = B_MIN + Math.random() * (B_MAX - B_MIN);
+  const c = C_MIN + Math.random() * (C_MAX - C_MIN);
+  const d = D_MIN + Math.random() * (D_MAX - D_MIN);
+  const e = E_MIN + Math.random() * (E_MAX - E_MIN);
   
   const choice = Math.random();
   const positions = new Float32Array(NUM_POINTS_SUBSET * 3);
   const colors = new Float32Array(NUM_POINTS_SUBSET * 3);
   
-  let x = 0.1 * (0.5 - Math.random());
-  let y = 0.1 * (0.5 - Math.random());
+  // Use different starting point for each subset (from original)
+  let x = subset * 0.005 * (0.5 - Math.random());
+  let y = subset * 0.005 * (0.5 - Math.random());
   let xMin = 0, xMax = 0, yMin = 0, yMax = 0;
   
   const points: Array<{ x: number; y: number }> = [];
   
-  // Generate orbit points using Hopalong formula
+  // Generate orbit points using exact Hopalong formula from original
   for (let i = 0; i < NUM_POINTS_SUBSET; i++) {
     let z;
     
-    // Three formula variations from original
+    // Three formula variations from original (exact implementation)
     if (choice < 0.5) {
       z = d + Math.sqrt(Math.abs(b * x - c));
     } else if (choice < 0.75) {
@@ -70,22 +86,19 @@ const generateHopalongOrbit = (colorPalette: string[], hueOffset: number): Orbit
     else if (y > yMax) yMax = y;
   }
   
-  // Normalize to SCALE_FACTOR
+  // Normalize to SCALE_FACTOR (exact from original)
   const scaleX = (2 * SCALE_FACTOR) / (xMax - xMin);
   const scaleY = (2 * SCALE_FACTOR) / (yMax - yMin);
   
-  // Apply normalization and colors
+  // Apply normalization and colors using HSV
   for (let i = 0; i < NUM_POINTS_SUBSET; i++) {
     positions[i * 3] = scaleX * (points[i].x - xMin) - SCALE_FACTOR;
     positions[i * 3 + 1] = scaleY * (points[i].y - yMin) - SCALE_FACTOR;
     positions[i * 3 + 2] = 0;
     
-    // Color based on position in orbit
-    const colorIndex = Math.floor((i / NUM_POINTS_SUBSET) * colorPalette.length) % colorPalette.length;
-    const color = new THREE.Color(colorPalette[colorIndex]);
-    
-    // Apply hue variation for each subset
-    color.offsetHSL(hueOffset, 0, 0);
+    // Use HSV color system from original
+    const color = new THREE.Color();
+    color.setHSL(hueValue, DEF_SATURATION, DEF_BRIGHTNESS);
     
     colors[i * 3] = color.r;
     colors[i * 3 + 1] = color.g;
@@ -96,47 +109,49 @@ const generateHopalongOrbit = (colorPalette: string[], hueOffset: number): Orbit
 };
 
 const HopalongLayer = ({ 
-  colorPalette, 
   level, 
   subset, 
-  speed 
+  speedRef,
+  rotationSpeedRef,
+  hueValue
 }: { 
-  colorPalette: string[]; 
   level: number; 
   subset: number;
-  speed: number;
+  speedRef: React.MutableRefObject<number>;
+  rotationSpeedRef: React.MutableRefObject<number>;
+  hueValue: number;
 }) => {
   const pointsRef = useRef<THREE.Points>(null);
-  const [needsUpdate, setNeedsUpdate] = useState(false);
+  const needsUpdateRef = useRef(false);
   const [orbitData, setOrbitData] = useState<OrbitData>(() => 
-    generateHopalongOrbit(colorPalette, subset * 0.15)
+    generateHopalongOrbit(hueValue, subset)
   );
   
   useEffect(() => {
-    // Regenerate orbit every 3 seconds
+    // Regenerate orbit every 3 seconds (exact from original)
     const interval = setInterval(() => {
-      const newData = generateHopalongOrbit(colorPalette, subset * 0.15);
+      const newData = generateHopalongOrbit(Math.random(), subset);
       setOrbitData(newData);
-      setNeedsUpdate(true);
+      needsUpdateRef.current = true;
     }, 3000);
     
     return () => clearInterval(interval);
-  }, [colorPalette, subset]);
+  }, [subset]);
   
-  useFrame((state, delta) => {
+  useFrame((state) => {
     if (!pointsRef.current) return;
     
-    // Move forward
-    pointsRef.current.position.z += speed * delta * 60;
+    // Move forward at current speed
+    pointsRef.current.position.z += speedRef.current;
     
-    // Gentle rotation
-    pointsRef.current.rotation.z += 0.0003 * delta * 60;
+    // Apply rotation
+    pointsRef.current.rotation.z += rotationSpeedRef.current;
     
-    // Loop when passing camera
+    // Loop when passing camera (exact from original)
     if (pointsRef.current.position.z > state.camera.position.z) {
       pointsRef.current.position.z = -(NUM_LEVELS - 1) * LEVEL_DEPTH;
       
-      if (needsUpdate) {
+      if (needsUpdateRef.current) {
         pointsRef.current.geometry.setAttribute('position', 
           new THREE.BufferAttribute(orbitData.positions, 3)
         );
@@ -145,12 +160,12 @@ const HopalongLayer = ({
         );
         pointsRef.current.geometry.attributes.position.needsUpdate = true;
         pointsRef.current.geometry.attributes.color.needsUpdate = true;
-        setNeedsUpdate(false);
+        needsUpdateRef.current = false;
       }
     }
   });
   
-  const initialZ = -LEVEL_DEPTH * level - (subset * LEVEL_DEPTH / NUM_SUBSETS);
+  const initialZ = -LEVEL_DEPTH * level - (subset * LEVEL_DEPTH / NUM_SUBSETS) + SCALE_FACTOR / 2;
   
   return (
     <points ref={pointsRef} position={[0, 0, initialZ]}>
@@ -169,7 +184,7 @@ const HopalongLayer = ({
         />
       </bufferGeometry>
       <pointsMaterial
-        size={4}
+        size={5}
         vertexColors
         transparent
         opacity={0.95}
@@ -181,12 +196,61 @@ const HopalongLayer = ({
   );
 };
 
+const CameraController = () => {
+  const { camera } = useThree();
+  const mouseX = useRef(0);
+  const mouseY = useRef(0);
+
+  useEffect(() => {
+    const handleMouseMove = (event: MouseEvent) => {
+      mouseX.current = event.clientX - window.innerWidth / 2;
+      mouseY.current = event.clientY - window.innerHeight / 2;
+    };
+
+    const handleTouchMove = (event: TouchEvent) => {
+      if (event.touches.length === 1) {
+        event.preventDefault();
+        mouseX.current = event.touches[0].pageX - window.innerWidth / 2;
+        mouseY.current = event.touches[0].pageY - window.innerHeight / 2;
+      }
+    };
+
+    document.addEventListener('mousemove', handleMouseMove);
+    document.addEventListener('touchmove', handleTouchMove);
+
+    return () => {
+      document.removeEventListener('mousemove', handleMouseMove);
+      document.removeEventListener('touchmove', handleTouchMove);
+    };
+  }, []);
+
+  useFrame(() => {
+    // Smooth camera movement based on mouse position (exact from original)
+    if (camera.position.x >= -CAMERA_BOUND && camera.position.x <= CAMERA_BOUND) {
+      camera.position.x += (mouseX.current - camera.position.x) * 0.05;
+      if (camera.position.x < -CAMERA_BOUND) camera.position.x = -CAMERA_BOUND;
+      if (camera.position.x > CAMERA_BOUND) camera.position.x = CAMERA_BOUND;
+    }
+    
+    if (camera.position.y >= -CAMERA_BOUND && camera.position.y <= CAMERA_BOUND) {
+      camera.position.y += (-mouseY.current - camera.position.y) * 0.05;
+      if (camera.position.y < -CAMERA_BOUND) camera.position.y = -CAMERA_BOUND;
+      if (camera.position.y > CAMERA_BOUND) camera.position.y = CAMERA_BOUND;
+    }
+  });
+
+  return null;
+};
+
 const StatsMonitor = () => {
   const statsRef = useRef<Stats | null>(null);
 
   useEffect(() => {
     const stats = new Stats();
     statsRef.current = stats;
+    stats.domElement.style.position = 'absolute';
+    stats.domElement.style.top = '5px';
+    stats.domElement.style.right = '5px';
     document.body.appendChild(stats.domElement);
 
     return () => {
@@ -206,33 +270,61 @@ const StatsMonitor = () => {
 };
 
 export const HopalongCanvas = ({ colorPalette, speed }: HopalongCanvasProps) => {
+  const speedRef = useRef(8); // Default speed from original
+  const rotationSpeedRef = useRef(0.005); // Default rotation from original
+  const [hueValues] = useState(() => 
+    Array.from({ length: NUM_SUBSETS }, () => Math.random())
+  );
+
+  useEffect(() => {
+    // Keyboard controls (exact from original)
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.keyCode === 38 && speedRef.current < 20) {
+        speedRef.current += 0.5; // Up arrow - increase speed
+      } else if (event.keyCode === 40 && speedRef.current > 0) {
+        speedRef.current -= 0.5; // Down arrow - decrease speed
+      } else if (event.keyCode === 37) {
+        rotationSpeedRef.current += 0.001; // Left arrow - increase rotation
+      } else if (event.keyCode === 39) {
+        rotationSpeedRef.current -= 0.001; // Right arrow - decrease rotation
+      }
+    };
+
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, []);
+
+  // Update speed from props
+  useEffect(() => {
+    speedRef.current = speed;
+  }, [speed]);
+
   return (
     <div className="fixed inset-0 w-full h-full">
       <Canvas
-        camera={{ position: [0, 0, 0], fov: 60 }}
+        camera={{ position: [0, 0, SCALE_FACTOR / 2], fov: 60 }}
         gl={{ 
-          antialias: true,
+          antialias: false, // Exact from original
           alpha: true,
           powerPreference: "high-performance"
         }}
       >
         <color attach="background" args={["#000000"]} />
-        <fog attach="fog" args={["#000000", 1, 3 * SCALE_FACTOR]} />
-        <ambientLight intensity={0.5} />
-        <pointLight position={[100, 100, 100]} intensity={1.5} />
-        <pointLight position={[-100, -100, 100]} intensity={1} />
+        <fog attach="fog" args={["#000000", 0.001]} />
         
+        <CameraController />
         <StatsMonitor />
         
-        {/* Create multiple levels and subsets */}
+        {/* Create multiple levels and subsets (exact structure from original) */}
         {Array.from({ length: NUM_LEVELS }).map((_, level) =>
           Array.from({ length: NUM_SUBSETS }).map((_, subset) => (
             <HopalongLayer
               key={`${level}-${subset}`}
-              colorPalette={colorPalette}
               level={level}
               subset={subset}
-              speed={speed}
+              speedRef={speedRef}
+              rotationSpeedRef={rotationSpeedRef}
+              hueValue={hueValues[subset]}
             />
           ))
         )}
