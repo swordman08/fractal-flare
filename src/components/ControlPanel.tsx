@@ -26,6 +26,8 @@ interface ControlPanelProps {
   onHopalongBChange: (value: number) => void;
   onHopalongCChange: (value: number) => void;
   isHopalongMode: boolean;
+  hopalongSpeed: number;
+  onHopalongSpeedChange: (value: number) => void;
 }
 
 const colorSchemes = [
@@ -87,6 +89,8 @@ export const ControlPanel = ({
   onHopalongBChange,
   onHopalongCChange,
   isHopalongMode,
+  hopalongSpeed,
+  onHopalongSpeedChange,
 }: ControlPanelProps) => {
   const handleFullscreen = () => {
     if (!document.fullscreenElement) {
@@ -232,8 +236,26 @@ export const ControlPanel = ({
         )}
 
 
+        {/* Speed Slider - Show in Hopalong mode */}
+        {isHopalongMode && (
+          <div className="space-y-2">
+            <div className="flex items-center justify-between">
+              <span className="text-sm font-medium text-foreground">Flight Speed:</span>
+              <span className="text-xs text-muted-foreground">{hopalongSpeed.toFixed(1)}x</span>
+            </div>
+            <Slider
+              value={[hopalongSpeed]}
+              onValueChange={(value) => onHopalongSpeedChange(value[0])}
+              min={0.1}
+              max={5}
+              step={0.1}
+              className="w-full"
+            />
+          </div>
+        )}
+
         {/* Scale Slider - Only show if not in Hopalong mode */}
-        {patternMode !== "hopalong" && (
+        {!isHopalongMode && (
           <div className="space-y-2">
             <div className="flex items-center justify-between">
               <span className="text-sm font-medium text-foreground">Scale:</span>

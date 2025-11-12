@@ -18,6 +18,7 @@ const Index = () => {
   const [hopalongA, setHopalongA] = useState(0.4);
   const [hopalongB, setHopalongB] = useState(1.0);
   const [hopalongC, setHopalongC] = useState(0.0);
+  const [hopalongSpeed, setHopalongSpeed] = useState(1);
 
   const getColorPalette = (scheme: string): string[] => {
     switch (scheme) {
@@ -79,6 +80,7 @@ const Index = () => {
           <HopalongCanvas
             key={clearTrigger}
             colorPalette={getColorPalette(colorScheme)}
+            speed={hopalongSpeed}
           />
         ) : (
           <VisualCanvas
@@ -119,6 +121,8 @@ const Index = () => {
             onHopalongAChange={() => {}}
             onHopalongBChange={() => {}}
             onHopalongCChange={() => {}}
+            hopalongSpeed={hopalongSpeed}
+            onHopalongSpeedChange={setHopalongSpeed}
           />
         ) : (
           <PanelToggle onToggle={() => setIsPanelOpen(true)} />

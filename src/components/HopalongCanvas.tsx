@@ -4,9 +4,7 @@ import * as THREE from "three";
 
 interface HopalongCanvasProps {
   colorPalette: string[];
-  a: number;
-  b: number;
-  c: number;
+  speed: number;
 }
 
 const HopalongPoints = ({ colorPalette }: { colorPalette: string[] }) => {
@@ -16,17 +14,17 @@ const HopalongPoints = ({ colorPalette }: { colorPalette: string[] }) => {
   const transitionRef = useRef({ target: { a: 0.4, b: 1.0, c: 0.0 }, duration: 0 });
   
   useEffect(() => {
-    // Generate random target parameters every 3-5 seconds
+    // Generate random target parameters every 8-12 seconds (much slower)
     const interval = setInterval(() => {
       transitionRef.current = {
         target: {
-          a: (Math.random() - 0.5) * 10,
-          b: (Math.random() - 0.5) * 8,
-          c: (Math.random() - 0.5) * 6,
+          a: (Math.random() - 0.5) * 8,
+          b: (Math.random() - 0.5) * 6,
+          c: (Math.random() - 0.5) * 4,
         },
-        duration: 3 + Math.random() * 2,
+        duration: 8 + Math.random() * 4,
       };
-    }, (3 + Math.random() * 2) * 1000);
+    }, (8 + Math.random() * 4) * 1000);
     
     return () => clearInterval(interval);
   }, []);
@@ -36,8 +34,8 @@ const HopalongPoints = ({ colorPalette }: { colorPalette: string[] }) => {
     
     timeRef.current += delta;
     
-    // Smoothly interpolate to target parameters
-    const t = Math.min(delta * 0.3, 1);
+    // Much smoother interpolation to target parameters
+    const t = Math.min(delta * 0.05, 1);
     setParams(prev => ({
       a: prev.a + (transitionRef.current.target.a - prev.a) * t,
       b: prev.b + (transitionRef.current.target.b - prev.b) * t,
@@ -48,7 +46,7 @@ const HopalongPoints = ({ colorPalette }: { colorPalette: string[] }) => {
   useEffect(() => {
     if (!pointsRef.current) return;
 
-    const iterations = 100000;
+    const iterations = 150000; // More points for more detail
     const positions = new Float32Array(iterations * 3);
     const colors = new Float32Array(iterations * 3);
     
@@ -63,10 +61,10 @@ const HopalongPoints = ({ colorPalette }: { colorPalette: string[] }) => {
       x = xx;
       y = yy;
       
-      // Scale to fill the entire screen
-      positions[i * 3] = x * 0.15;
-      positions[i * 3 + 1] = y * 0.15;
-      positions[i * 3 + 2] = (i / iterations) * 200 - 100; // Deep z-axis spread for flying through
+      // Much larger scale to fill entire screen and beyond
+      positions[i * 3] = x * 0.4;
+      positions[i * 3 + 1] = y * 0.4;
+      positions[i * 3 + 2] = (i / iterations) * 400 - 200; // Much deeper z-axis spread
       
       // Dynamic color based on position and iteration
       const colorIndex = Math.floor((i / iterations) * colorPalette.length) % colorPalette.length;
@@ -92,10 +90,10 @@ const HopalongPoints = ({ colorPalette }: { colorPalette: string[] }) => {
     <points ref={pointsRef}>
       <bufferGeometry />
       <pointsMaterial
-        size={0.08}
+        size={0.15}
         vertexColors
         transparent
-        opacity={0.95}
+        opacity={1.0}
         sizeAttenuation
         blending={THREE.AdditiveBlending}
       />
@@ -103,36 +101,36 @@ const HopalongPoints = ({ colorPalette }: { colorPalette: string[] }) => {
   );
 };
 
-const CameraAnimation = () => {
+const CameraAnimation = ({ speed }: { speed: number }) => {
   const timeRef = useRef(0);
   
   useFrame((state, delta) => {
     timeRef.current += delta;
     
     // Fly forward through the fractal - moving towards negative z
-    const speed = 5;
-    state.camera.position.z -= delta * speed;
+    const flightSpeed = 3 * speed;
+    state.camera.position.z -= delta * flightSpeed;
     
     // Reset when we've flown through
-    if (state.camera.position.z < -90) {
-      state.camera.position.z = 100;
+    if (state.camera.position.z < -180) {
+      state.camera.position.z = 180;
     }
     
-    // Slight drift side to side for dynamic feel
-    state.camera.position.x = Math.sin(timeRef.current * 0.3) * 2;
-    state.camera.position.y = Math.cos(timeRef.current * 0.25) * 2;
+    // Very gentle drift side to side for subtle dynamic feel
+    state.camera.position.x = Math.sin(timeRef.current * 0.15) * 3;
+    state.camera.position.y = Math.cos(timeRef.current * 0.12) * 3;
     
-    state.camera.lookAt(0, 0, state.camera.position.z - 50);
+    state.camera.lookAt(0, 0, state.camera.position.z - 80);
   });
   
   return null;
 };
 
-export const HopalongCanvas = ({ colorPalette }: Pick<HopalongCanvasProps, 'colorPalette'>) => {
+export const HopalongCanvas = ({ colorPalette, speed }: HopalongCanvasProps) => {
   return (
     <div className="fixed inset-0 w-full h-full">
       <Canvas
-        camera={{ position: [0, 0, 100], fov: 90 }}
+        camera={{ position: [0, 0, 180], fov: 100 }}
         gl={{ 
           antialias: true,
           alpha: true,
@@ -140,11 +138,12 @@ export const HopalongCanvas = ({ colorPalette }: Pick<HopalongCanvasProps, 'colo
         }}
       >
         <color attach="background" args={["#000000"]} />
-        <ambientLight intensity={0.5} />
-        <pointLight position={[10, 10, 50]} intensity={1} />
-        <pointLight position={[-10, -10, 50]} intensity={0.5} />
+        <ambientLight intensity={0.6} />
+        <pointLight position={[20, 20, 100]} intensity={1.5} />
+        <pointLight position={[-20, -20, 100]} intensity={1} />
+        <pointLight position={[0, 0, -50]} intensity={0.8} />
         <HopalongPoints colorPalette={colorPalette} />
-        <CameraAnimation />
+        <CameraAnimation speed={speed} />
       </Canvas>
     </div>
   );
