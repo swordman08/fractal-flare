@@ -63,7 +63,6 @@ const patternModes = [
   { name: "Strobe", value: "strobe" as const, icon: Sparkles },
   { name: "Pulse", value: "pulse" as const, icon: Waves },
   { name: "Firework", value: "firework" as const, icon: Sparkles },
-  { name: "Hopalong", value: "hopalong" as const, icon: Grid3x3 },
 ];
 
 export const ControlPanel = ({
@@ -166,33 +165,49 @@ export const ControlPanel = ({
           </div>
         </div>
 
-        {/* Pattern Mode */}
+        {/* Hopalong Fractal Mode */}
         <div className="space-y-2">
-          <span className="text-sm font-medium text-foreground">Pattern:</span>
-          <div className="grid grid-cols-3 gap-2">
-            {patternModes.map((mode) => {
-              const Icon = mode.icon;
-              return (
-                <Button
-                  key={mode.value}
-                  variant={patternMode === mode.value ? "default" : "outline"}
-                  size="sm"
-                  onClick={() => onPatternModeChange(mode.value)}
-                  className="gap-1 p-2 text-xs"
-                  title={mode.name}
-                >
-                  {mode.name}
-                </Button>
-              );
-            })}
-          </div>
-          {(patternMode === "fractals" || patternMode === "constellation") && (
-            <div className="flex items-start gap-2 text-xs text-yellow-600 dark:text-yellow-400 bg-yellow-500/10 p-2 rounded-md">
-              <AlertTriangle className="h-4 w-4 shrink-0 mt-0.5" />
-              <span>This pattern may be intensive on slower devices</span>
-            </div>
-          )}
+          <span className="text-sm font-medium text-foreground">Fractal Mode:</span>
+          <Button
+            variant={patternMode === "hopalong" ? "default" : "outline"}
+            size="sm"
+            onClick={() => onPatternModeChange("hopalong")}
+            className="w-full gap-2"
+          >
+            <Grid3x3 className="h-4 w-4" />
+            Hopalong 3D
+          </Button>
         </div>
+
+        {/* Pattern Mode */}
+        {patternMode !== "hopalong" && (
+          <div className="space-y-2">
+            <span className="text-sm font-medium text-foreground">Pattern:</span>
+            <div className="grid grid-cols-3 gap-2">
+              {patternModes.map((mode) => {
+                const Icon = mode.icon;
+                return (
+                  <Button
+                    key={mode.value}
+                    variant={patternMode === mode.value ? "default" : "outline"}
+                    size="sm"
+                    onClick={() => onPatternModeChange(mode.value)}
+                    className="gap-1 p-2 text-xs"
+                    title={mode.name}
+                  >
+                    {mode.name}
+                  </Button>
+                );
+              })}
+            </div>
+            {(patternMode === "fractals" || patternMode === "constellation") && (
+              <div className="flex items-start gap-2 text-xs text-yellow-600 dark:text-yellow-400 bg-yellow-500/10 p-2 rounded-md">
+                <AlertTriangle className="h-4 w-4 shrink-0 mt-0.5" />
+                <span>This pattern may be intensive on slower devices</span>
+              </div>
+            )}
+          </div>
+        )}
 
         {/* Particle Shape - Only show if not in Hopalong mode */}
         {patternMode !== "hopalong" && (
@@ -214,59 +229,6 @@ export const ControlPanel = ({
           </div>
         )}
 
-        {/* Hopalong Parameters - Only show in Hopalong mode */}
-        {patternMode === "hopalong" && (
-          <div className="space-y-4">
-            <div className="text-xs text-muted-foreground bg-primary/10 p-2 rounded-md">
-              Hopalong Attractor: (x, y) → (y - sign(x)√|bx - c|, a - x)
-            </div>
-            
-            <div className="space-y-2">
-              <div className="flex items-center justify-between">
-                <span className="text-sm font-medium text-foreground">Parameter A:</span>
-                <span className="text-xs text-muted-foreground">{hopalongA.toFixed(2)}</span>
-              </div>
-              <Slider
-                value={[hopalongA]}
-                onValueChange={(value) => onHopalongAChange(value[0])}
-                min={-10}
-                max={10}
-                step={0.1}
-                className="w-full"
-              />
-            </div>
-
-            <div className="space-y-2">
-              <div className="flex items-center justify-between">
-                <span className="text-sm font-medium text-foreground">Parameter B:</span>
-                <span className="text-xs text-muted-foreground">{hopalongB.toFixed(2)}</span>
-              </div>
-              <Slider
-                value={[hopalongB]}
-                onValueChange={(value) => onHopalongBChange(value[0])}
-                min={-10}
-                max={10}
-                step={0.1}
-                className="w-full"
-              />
-            </div>
-
-            <div className="space-y-2">
-              <div className="flex items-center justify-between">
-                <span className="text-sm font-medium text-foreground">Parameter C:</span>
-                <span className="text-xs text-muted-foreground">{hopalongC.toFixed(2)}</span>
-              </div>
-              <Slider
-                value={[hopalongC]}
-                onValueChange={(value) => onHopalongCChange(value[0])}
-                min={-10}
-                max={10}
-                step={0.1}
-                className="w-full"
-              />
-            </div>
-          </div>
-        )}
 
         {/* Scale Slider - Only show if not in Hopalong mode */}
         {patternMode !== "hopalong" && (

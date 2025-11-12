@@ -78,9 +78,6 @@ const Index = () => {
           <HopalongCanvas
             key={clearTrigger}
             colorPalette={getColorPalette(colorScheme)}
-            a={hopalongA}
-            b={hopalongB}
-            c={hopalongC}
           />
         ) : (
           <VisualCanvas
@@ -107,12 +104,12 @@ const Index = () => {
             onClear={() => setClearTrigger((prev) => prev + 1)}
             isOpen={isPanelOpen}
             onTogglePanel={() => setIsPanelOpen(false)}
-            hopalongA={hopalongA}
-            hopalongB={hopalongB}
-            hopalongC={hopalongC}
-            onHopalongAChange={setHopalongA}
-            onHopalongBChange={setHopalongB}
-            onHopalongCChange={setHopalongC}
+            hopalongA={0}
+            hopalongB={0}
+            hopalongC={0}
+            onHopalongAChange={() => {}}
+            onHopalongBChange={() => {}}
+            onHopalongCChange={() => {}}
           />
         ) : (
           <PanelToggle onToggle={() => setIsPanelOpen(true)} />
