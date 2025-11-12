@@ -4,15 +4,19 @@ import { ControlPanel } from "@/components/ControlPanel";
 import { InfoOverlay } from "@/components/InfoOverlay";
 import { CreatorTag } from "@/components/CreatorTag";
 import { PanelToggle } from "@/components/PanelToggle";
+import { HopalongCanvas } from "@/components/HopalongCanvas";
 
 const Index = () => {
   const [isDarkMode, setIsDarkMode] = useState(true);
   const [colorScheme, setColorScheme] = useState("cyan");
-  const [patternMode, setPatternMode] = useState<"particles" | "fractals" | "waves" | "streak" | "laser" | "lightning" | "constellation" | "grid" | "ribbon" | "strobe" | "pulse" | "firework">("particles");
+  const [patternMode, setPatternMode] = useState<"particles" | "fractals" | "waves" | "streak" | "laser" | "lightning" | "constellation" | "grid" | "ribbon" | "strobe" | "pulse" | "firework" | "hopalong">("particles");
   const [particleShape, setParticleShape] = useState<"circle" | "square" | "triangle" | "star" | "diamond" | "hexagon">("circle");
   const [scale, setScale] = useState(1);
   const [clearTrigger, setClearTrigger] = useState(0);
   const [isPanelOpen, setIsPanelOpen] = useState(true);
+  const [hopalongA, setHopalongA] = useState(0.4);
+  const [hopalongB, setHopalongB] = useState(1.0);
+  const [hopalongC, setHopalongC] = useState(0.0);
 
   const getColorPalette = (scheme: string): string[] => {
     switch (scheme) {
@@ -70,14 +74,24 @@ const Index = () => {
   return (
     <div className={isDarkMode ? "dark" : ""}>
       <div className="min-h-screen bg-background overflow-hidden">
-        <VisualCanvas
-          key={clearTrigger}
-          isDarkMode={isDarkMode}
-          colorPalette={getColorPalette(colorScheme)}
-          patternMode={patternMode}
-          particleShape={particleShape}
-          scale={scale}
-        />
+        {patternMode === "hopalong" ? (
+          <HopalongCanvas
+            key={clearTrigger}
+            colorPalette={getColorPalette(colorScheme)}
+            a={hopalongA}
+            b={hopalongB}
+            c={hopalongC}
+          />
+        ) : (
+          <VisualCanvas
+            key={clearTrigger}
+            isDarkMode={isDarkMode}
+            colorPalette={getColorPalette(colorScheme)}
+            patternMode={patternMode}
+            particleShape={particleShape}
+            scale={scale}
+          />
+        )}
         {isPanelOpen ? (
           <ControlPanel
             isDarkMode={isDarkMode}
@@ -93,6 +107,12 @@ const Index = () => {
             onClear={() => setClearTrigger((prev) => prev + 1)}
             isOpen={isPanelOpen}
             onTogglePanel={() => setIsPanelOpen(false)}
+            hopalongA={hopalongA}
+            hopalongB={hopalongB}
+            hopalongC={hopalongC}
+            onHopalongAChange={setHopalongA}
+            onHopalongBChange={setHopalongB}
+            onHopalongCChange={setHopalongC}
           />
         ) : (
           <PanelToggle onToggle={() => setIsPanelOpen(true)} />

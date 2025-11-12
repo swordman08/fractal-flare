@@ -10,8 +10,8 @@ interface ControlPanelProps {
   onToggleDarkMode: () => void;
   colorScheme: string;
   onColorSchemeChange: (scheme: string) => void;
-  patternMode: "particles" | "fractals" | "waves" | "streak" | "laser" | "lightning" | "constellation" | "grid" | "ribbon" | "strobe" | "pulse" | "firework";
-  onPatternModeChange: (mode: "particles" | "fractals" | "waves" | "streak" | "laser" | "lightning" | "constellation" | "grid" | "ribbon" | "strobe" | "pulse" | "firework") => void;
+  patternMode: "particles" | "fractals" | "waves" | "streak" | "laser" | "lightning" | "constellation" | "grid" | "ribbon" | "strobe" | "pulse" | "firework" | "hopalong";
+  onPatternModeChange: (mode: "particles" | "fractals" | "waves" | "streak" | "laser" | "lightning" | "constellation" | "grid" | "ribbon" | "strobe" | "pulse" | "firework" | "hopalong") => void;
   particleShape: "circle" | "square" | "triangle" | "star" | "diamond" | "hexagon";
   onParticleShapeChange: (shape: "circle" | "square" | "triangle" | "star" | "diamond" | "hexagon") => void;
   scale: number;
@@ -19,6 +19,12 @@ interface ControlPanelProps {
   onClear: () => void;
   isOpen: boolean;
   onTogglePanel: () => void;
+  hopalongA: number;
+  hopalongB: number;
+  hopalongC: number;
+  onHopalongAChange: (value: number) => void;
+  onHopalongBChange: (value: number) => void;
+  onHopalongCChange: (value: number) => void;
 }
 
 const colorSchemes = [
@@ -57,6 +63,7 @@ const patternModes = [
   { name: "Strobe", value: "strobe" as const, icon: Sparkles },
   { name: "Pulse", value: "pulse" as const, icon: Waves },
   { name: "Firework", value: "firework" as const, icon: Sparkles },
+  { name: "Hopalong", value: "hopalong" as const, icon: Grid3x3 },
 ];
 
 export const ControlPanel = ({
@@ -73,6 +80,12 @@ export const ControlPanel = ({
   onClear,
   isOpen,
   onTogglePanel,
+  hopalongA,
+  hopalongB,
+  hopalongC,
+  onHopalongAChange,
+  onHopalongBChange,
+  onHopalongCChange,
 }: ControlPanelProps) => {
   const handleFullscreen = () => {
     if (!document.fullscreenElement) {
@@ -181,39 +194,97 @@ export const ControlPanel = ({
           )}
         </div>
 
-        {/* Particle Shape */}
-        <div className="space-y-2">
-          <Label className="text-sm font-medium">Shape:</Label>
-          <Select value={particleShape} onValueChange={onParticleShapeChange}>
-            <SelectTrigger className="w-full">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="circle">Circle</SelectItem>
-              <SelectItem value="square">Square</SelectItem>
-              <SelectItem value="triangle">Triangle</SelectItem>
-              <SelectItem value="star">Star</SelectItem>
-              <SelectItem value="diamond">Diamond</SelectItem>
-              <SelectItem value="hexagon">Hexagon</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
-
-        {/* Scale Slider */}
-        <div className="space-y-2">
-          <div className="flex items-center justify-between">
-            <span className="text-sm font-medium text-foreground">Scale:</span>
-            <span className="text-xs text-muted-foreground">{scale.toFixed(1)}x</span>
+        {/* Particle Shape - Only show if not in Hopalong mode */}
+        {patternMode !== "hopalong" && (
+          <div className="space-y-2">
+            <Label className="text-sm font-medium">Shape:</Label>
+            <Select value={particleShape} onValueChange={onParticleShapeChange}>
+              <SelectTrigger className="w-full">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="circle">Circle</SelectItem>
+                <SelectItem value="square">Square</SelectItem>
+                <SelectItem value="triangle">Triangle</SelectItem>
+                <SelectItem value="star">Star</SelectItem>
+                <SelectItem value="diamond">Diamond</SelectItem>
+                <SelectItem value="hexagon">Hexagon</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
-          <Slider
-            value={[scale]}
-            onValueChange={(value) => onScaleChange(value[0])}
-            min={0.5}
-            max={3}
-            step={0.1}
-            className="w-full"
-          />
-        </div>
+        )}
+
+        {/* Hopalong Parameters - Only show in Hopalong mode */}
+        {patternMode === "hopalong" && (
+          <div className="space-y-4">
+            <div className="text-xs text-muted-foreground bg-primary/10 p-2 rounded-md">
+              Hopalong Attractor: (x, y) → (y - sign(x)√|bx - c|, a - x)
+            </div>
+            
+            <div className="space-y-2">
+              <div className="flex items-center justify-between">
+                <span className="text-sm font-medium text-foreground">Parameter A:</span>
+                <span className="text-xs text-muted-foreground">{hopalongA.toFixed(2)}</span>
+              </div>
+              <Slider
+                value={[hopalongA]}
+                onValueChange={(value) => onHopalongAChange(value[0])}
+                min={-10}
+                max={10}
+                step={0.1}
+                className="w-full"
+              />
+            </div>
+
+            <div className="space-y-2">
+              <div className="flex items-center justify-between">
+                <span className="text-sm font-medium text-foreground">Parameter B:</span>
+                <span className="text-xs text-muted-foreground">{hopalongB.toFixed(2)}</span>
+              </div>
+              <Slider
+                value={[hopalongB]}
+                onValueChange={(value) => onHopalongBChange(value[0])}
+                min={-10}
+                max={10}
+                step={0.1}
+                className="w-full"
+              />
+            </div>
+
+            <div className="space-y-2">
+              <div className="flex items-center justify-between">
+                <span className="text-sm font-medium text-foreground">Parameter C:</span>
+                <span className="text-xs text-muted-foreground">{hopalongC.toFixed(2)}</span>
+              </div>
+              <Slider
+                value={[hopalongC]}
+                onValueChange={(value) => onHopalongCChange(value[0])}
+                min={-10}
+                max={10}
+                step={0.1}
+                className="w-full"
+              />
+            </div>
+          </div>
+        )}
+
+        {/* Scale Slider - Only show if not in Hopalong mode */}
+        {patternMode !== "hopalong" && (
+          <div className="space-y-2">
+            <div className="flex items-center justify-between">
+              <span className="text-sm font-medium text-foreground">Scale:</span>
+              <span className="text-xs text-muted-foreground">{scale.toFixed(1)}x</span>
+            </div>
+            <Slider
+              value={[scale]}
+              onValueChange={(value) => onScaleChange(value[0])}
+              min={0.5}
+              max={3}
+              step={0.1}
+              className="w-full"
+            />
+          </div>
+        )}
 
         {/* Clear Button */}
         <Button
