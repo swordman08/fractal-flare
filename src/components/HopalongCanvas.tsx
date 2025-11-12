@@ -7,133 +7,184 @@ interface HopalongCanvasProps {
   speed: number;
 }
 
-const HopalongPoints = ({ colorPalette }: { colorPalette: string[] }) => {
+const SCALE_FACTOR = 2000;
+const NUM_POINTS_SUBSET = 50000;
+const NUM_SUBSETS = 6;
+const NUM_LEVELS = 5;
+const LEVEL_DEPTH = 400;
+
+interface OrbitData {
+  positions: Float32Array;
+  colors: Float32Array;
+}
+
+const generateHopalongOrbit = (colorPalette: string[], hueOffset: number): OrbitData => {
+  // Parameter ranges from original
+  const a = -30 + Math.random() * 60;
+  const b = 0.2 + Math.random() * 1.6;
+  const c = 5 + Math.random() * 12;
+  const d = Math.random() * 10;
+  const e = Math.random() * 12;
+  
+  const choice = Math.random();
+  const positions = new Float32Array(NUM_POINTS_SUBSET * 3);
+  const colors = new Float32Array(NUM_POINTS_SUBSET * 3);
+  
+  let x = 0.1 * (0.5 - Math.random());
+  let y = 0.1 * (0.5 - Math.random());
+  let xMin = 0, xMax = 0, yMin = 0, yMax = 0;
+  
+  const points: Array<{ x: number; y: number }> = [];
+  
+  // Generate orbit points using Hopalong formula
+  for (let i = 0; i < NUM_POINTS_SUBSET; i++) {
+    let z;
+    
+    // Three formula variations from original
+    if (choice < 0.5) {
+      z = d + Math.sqrt(Math.abs(b * x - c));
+    } else if (choice < 0.75) {
+      z = d + Math.sqrt(Math.sqrt(Math.abs(b * x - c)));
+    } else {
+      z = d + Math.log(2 + Math.sqrt(Math.abs(b * x - c)));
+    }
+    
+    let x1;
+    if (x > 0) {
+      x1 = y - z;
+    } else if (x === 0) {
+      x1 = y;
+    } else {
+      x1 = y + z;
+    }
+    
+    y = a - x;
+    x = x1 + e;
+    
+    points.push({ x, y });
+    
+    if (x < xMin) xMin = x;
+    else if (x > xMax) xMax = x;
+    if (y < yMin) yMin = y;
+    else if (y > yMax) yMax = y;
+  }
+  
+  // Normalize to SCALE_FACTOR
+  const scaleX = (2 * SCALE_FACTOR) / (xMax - xMin);
+  const scaleY = (2 * SCALE_FACTOR) / (yMax - yMin);
+  
+  // Apply normalization and colors
+  for (let i = 0; i < NUM_POINTS_SUBSET; i++) {
+    positions[i * 3] = scaleX * (points[i].x - xMin) - SCALE_FACTOR;
+    positions[i * 3 + 1] = scaleY * (points[i].y - yMin) - SCALE_FACTOR;
+    positions[i * 3 + 2] = 0;
+    
+    // Color based on position in orbit
+    const colorIndex = Math.floor((i / NUM_POINTS_SUBSET) * colorPalette.length) % colorPalette.length;
+    const color = new THREE.Color(colorPalette[colorIndex]);
+    
+    // Apply hue variation for each subset
+    color.offsetHSL(hueOffset, 0, 0);
+    
+    colors[i * 3] = color.r;
+    colors[i * 3 + 1] = color.g;
+    colors[i * 3 + 2] = color.b;
+  }
+  
+  return { positions, colors };
+};
+
+const HopalongLayer = ({ 
+  colorPalette, 
+  level, 
+  subset, 
+  speed 
+}: { 
+  colorPalette: string[]; 
+  level: number; 
+  subset: number;
+  speed: number;
+}) => {
   const pointsRef = useRef<THREE.Points>(null);
-  const [params, setParams] = useState({ a: 0.4, b: 1.0, c: 0.0 });
-  const timeRef = useRef(0);
-  const transitionRef = useRef({ target: { a: 0.4, b: 1.0, c: 0.0 }, duration: 0 });
+  const [needsUpdate, setNeedsUpdate] = useState(false);
+  const [orbitData, setOrbitData] = useState<OrbitData>(() => 
+    generateHopalongOrbit(colorPalette, subset * 0.15)
+  );
   
   useEffect(() => {
-    // Generate random target parameters every 8-12 seconds (much slower)
+    // Regenerate orbit every 3 seconds
     const interval = setInterval(() => {
-      transitionRef.current = {
-        target: {
-          a: (Math.random() - 0.5) * 6,
-          b: (Math.random() - 0.5) * 5,
-          c: (Math.random() - 0.5) * 3,
-        },
-        duration: 10 + Math.random() * 5,
-      };
-    }, (10 + Math.random() * 5) * 1000);
+      const newData = generateHopalongOrbit(colorPalette, subset * 0.15);
+      setOrbitData(newData);
+      setNeedsUpdate(true);
+    }, 3000);
     
     return () => clearInterval(interval);
-  }, []);
-
+  }, [colorPalette, subset]);
+  
   useFrame((state, delta) => {
     if (!pointsRef.current) return;
     
-    timeRef.current += delta;
+    // Move forward
+    pointsRef.current.position.z += speed * delta * 60;
     
-    // Ultra smooth, fluid interpolation for organic morphing
-    const t = Math.min(delta * 0.02, 1);
-    setParams(prev => ({
-      a: prev.a + (transitionRef.current.target.a - prev.a) * t,
-      b: prev.b + (transitionRef.current.target.b - prev.b) * t,
-      c: prev.c + (transitionRef.current.target.c - prev.c) * t,
-    }));
+    // Gentle rotation
+    pointsRef.current.rotation.z += 0.0003 * delta * 60;
+    
+    // Loop when passing camera
+    if (pointsRef.current.position.z > state.camera.position.z) {
+      pointsRef.current.position.z = -(NUM_LEVELS - 1) * LEVEL_DEPTH;
+      
+      if (needsUpdate) {
+        pointsRef.current.geometry.setAttribute('position', 
+          new THREE.BufferAttribute(orbitData.positions, 3)
+        );
+        pointsRef.current.geometry.setAttribute('color', 
+          new THREE.BufferAttribute(orbitData.colors, 3)
+        );
+        pointsRef.current.geometry.attributes.position.needsUpdate = true;
+        pointsRef.current.geometry.attributes.color.needsUpdate = true;
+        setNeedsUpdate(false);
+      }
+    }
   });
   
-  useEffect(() => {
-    if (!pointsRef.current) return;
-
-    const iterations = 200000; // Even more points for immersive detail
-    const positions = new Float32Array(iterations * 3);
-    const colors = new Float32Array(iterations * 3);
-    
-    let x = 0;
-    let y = 0;
-    
-    // Generate Hopalong Attractor points
-    for (let i = 0; i < iterations; i++) {
-      const xx = y - Math.sign(x) * Math.sqrt(Math.abs(params.b * x - params.c));
-      const yy = params.a - x;
-      
-      x = xx;
-      y = yy;
-      
-      // Massive scale to completely immerse the viewer
-      positions[i * 3] = x * 1.2;
-      positions[i * 3 + 1] = y * 1.2;
-      positions[i * 3 + 2] = (i / iterations) * 800 - 400; // Very deep space
-      
-      // Dynamic color based on position and iteration
-      const colorIndex = Math.floor((i / iterations) * colorPalette.length) % colorPalette.length;
-      const nextColorIndex = (colorIndex + 1) % colorPalette.length;
-      const colorMix = (i / iterations * colorPalette.length) % 1;
-      
-      const color1 = new THREE.Color(colorPalette[colorIndex]);
-      const color2 = new THREE.Color(colorPalette[nextColorIndex]);
-      const color = color1.lerp(color2, colorMix);
-      
-      colors[i * 3] = color.r;
-      colors[i * 3 + 1] = color.g;
-      colors[i * 3 + 2] = color.b;
-    }
-    
-    const geometry = pointsRef.current.geometry;
-    geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
-    geometry.setAttribute('color', new THREE.BufferAttribute(colors, 3));
-    geometry.computeBoundingSphere();
-  }, [params, colorPalette]);
-
+  const initialZ = -LEVEL_DEPTH * level - (subset * LEVEL_DEPTH / NUM_SUBSETS);
+  
   return (
-    <points ref={pointsRef}>
-      <bufferGeometry />
+    <points ref={pointsRef} position={[0, 0, initialZ]}>
+      <bufferGeometry>
+        <bufferAttribute
+          attach="attributes-position"
+          count={NUM_POINTS_SUBSET}
+          array={orbitData.positions}
+          itemSize={3}
+        />
+        <bufferAttribute
+          attach="attributes-color"
+          count={NUM_POINTS_SUBSET}
+          array={orbitData.colors}
+          itemSize={3}
+        />
+      </bufferGeometry>
       <pointsMaterial
-        size={0.25}
+        size={4}
         vertexColors
         transparent
-        opacity={1.0}
+        opacity={0.95}
         sizeAttenuation
         blending={THREE.AdditiveBlending}
+        depthTest={false}
       />
     </points>
   );
-};
-
-const CameraAnimation = ({ speed }: { speed: number }) => {
-  const timeRef = useRef(0);
-  
-  useFrame((state, delta) => {
-    timeRef.current += delta;
-    
-    // Smooth, fluid forward motion through the fractal
-    const flightSpeed = 4 * speed;
-    state.camera.position.z -= delta * flightSpeed;
-    
-    // Reset when we've flown through
-    if (state.camera.position.z < -350) {
-      state.camera.position.z = 350;
-    }
-    
-    // Smooth, organic camera drift for fluid motion
-    state.camera.position.x = Math.sin(timeRef.current * 0.08) * 8 + Math.sin(timeRef.current * 0.23) * 4;
-    state.camera.position.y = Math.cos(timeRef.current * 0.09) * 8 + Math.cos(timeRef.current * 0.17) * 4;
-    
-    // Subtle rotation for more organic feel
-    state.camera.rotation.z = Math.sin(timeRef.current * 0.05) * 0.05;
-    
-    state.camera.lookAt(0, 0, state.camera.position.z - 100);
-  });
-  
-  return null;
 };
 
 export const HopalongCanvas = ({ colorPalette, speed }: HopalongCanvasProps) => {
   return (
     <div className="fixed inset-0 w-full h-full">
       <Canvas
-        camera={{ position: [0, 0, 350], fov: 110 }}
+        camera={{ position: [0, 0, 0], fov: 60 }}
         gl={{ 
           antialias: true,
           alpha: true,
@@ -141,12 +192,23 @@ export const HopalongCanvas = ({ colorPalette, speed }: HopalongCanvasProps) => 
         }}
       >
         <color attach="background" args={["#000000"]} />
-        <ambientLight intensity={0.8} />
-        <pointLight position={[50, 50, 200]} intensity={2} />
-        <pointLight position={[-50, -50, 200]} intensity={1.5} />
-        <pointLight position={[0, 0, -100]} intensity={1.2} />
-        <HopalongPoints colorPalette={colorPalette} />
-        <CameraAnimation speed={speed} />
+        <fog attach="fog" args={["#000000", 1, 3 * SCALE_FACTOR]} />
+        <ambientLight intensity={0.5} />
+        <pointLight position={[100, 100, 100]} intensity={1.5} />
+        <pointLight position={[-100, -100, 100]} intensity={1} />
+        
+        {/* Create multiple levels and subsets */}
+        {Array.from({ length: NUM_LEVELS }).map((_, level) =>
+          Array.from({ length: NUM_SUBSETS }).map((_, subset) => (
+            <HopalongLayer
+              key={`${level}-${subset}`}
+              colorPalette={colorPalette}
+              level={level}
+              subset={subset}
+              speed={speed}
+            />
+          ))
+        )}
       </Canvas>
     </div>
   );
