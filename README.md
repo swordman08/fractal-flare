@@ -30,7 +30,7 @@ npm i
 npm run dev
 
 # Step 6: Click on the local host link and use the app in browser.
-Local: http://localhost:5173/      or similiar
+Local: http://localhost:5173/      or similar
 
 
 
