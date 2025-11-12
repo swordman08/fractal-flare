@@ -1,6 +1,7 @@
 import { useRef, useEffect, useState } from "react";
 import { Canvas, useFrame } from "@react-three/fiber";
 import * as THREE from "three";
+import { Stats } from "@/utils/stats";
 
 interface HopalongCanvasProps {
   colorPalette: string[];
@@ -180,6 +181,30 @@ const HopalongLayer = ({
   );
 };
 
+const StatsMonitor = () => {
+  const statsRef = useRef<Stats | null>(null);
+
+  useEffect(() => {
+    const stats = new Stats();
+    statsRef.current = stats;
+    document.body.appendChild(stats.domElement);
+
+    return () => {
+      if (statsRef.current) {
+        document.body.removeChild(statsRef.current.domElement);
+      }
+    };
+  }, []);
+
+  useFrame(() => {
+    if (statsRef.current) {
+      statsRef.current.update();
+    }
+  });
+
+  return null;
+};
+
 export const HopalongCanvas = ({ colorPalette, speed }: HopalongCanvasProps) => {
   return (
     <div className="fixed inset-0 w-full h-full">
@@ -196,6 +221,8 @@ export const HopalongCanvas = ({ colorPalette, speed }: HopalongCanvasProps) => 
         <ambientLight intensity={0.5} />
         <pointLight position={[100, 100, 100]} intensity={1.5} />
         <pointLight position={[-100, -100, 100]} intensity={1} />
+        
+        <StatsMonitor />
         
         {/* Create multiple levels and subsets */}
         {Array.from({ length: NUM_LEVELS }).map((_, level) =>
