@@ -25,6 +25,7 @@ interface ControlPanelProps {
   onHopalongAChange: (value: number) => void;
   onHopalongBChange: (value: number) => void;
   onHopalongCChange: (value: number) => void;
+  isHopalongMode: boolean;
 }
 
 const colorSchemes = [
@@ -85,6 +86,7 @@ export const ControlPanel = ({
   onHopalongAChange,
   onHopalongBChange,
   onHopalongCChange,
+  isHopalongMode,
 }: ControlPanelProps) => {
   const handleFullscreen = () => {
     if (!document.fullscreenElement) {
@@ -169,18 +171,18 @@ export const ControlPanel = ({
         <div className="space-y-2">
           <span className="text-sm font-medium text-foreground">Fractal Mode:</span>
           <Button
-            variant={patternMode === "hopalong" ? "default" : "outline"}
+            variant={isHopalongMode ? "default" : "outline"}
             size="sm"
-            onClick={() => onPatternModeChange("hopalong")}
+            onClick={() => onPatternModeChange(isHopalongMode ? "particles" : "hopalong")}
             className="w-full gap-2"
           >
             <Grid3x3 className="h-4 w-4" />
-            Hopalong 3D
+            {isHopalongMode ? "Exit Hopalong" : "Enter Hopalong 3D"}
           </Button>
         </div>
 
         {/* Pattern Mode */}
-        {patternMode !== "hopalong" && (
+        {!isHopalongMode && (
           <div className="space-y-2">
             <span className="text-sm font-medium text-foreground">Pattern:</span>
             <div className="grid grid-cols-3 gap-2">

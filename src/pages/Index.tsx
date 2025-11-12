@@ -9,7 +9,8 @@ import { HopalongCanvas } from "@/components/HopalongCanvas";
 const Index = () => {
   const [isDarkMode, setIsDarkMode] = useState(true);
   const [colorScheme, setColorScheme] = useState("cyan");
-  const [patternMode, setPatternMode] = useState<"particles" | "fractals" | "waves" | "streak" | "laser" | "lightning" | "constellation" | "grid" | "ribbon" | "strobe" | "pulse" | "firework" | "hopalong">("particles");
+  const [patternMode, setPatternMode] = useState<"particles" | "fractals" | "waves" | "streak" | "laser" | "lightning" | "constellation" | "grid" | "ribbon" | "strobe" | "pulse" | "firework">("particles");
+  const [isHopalongMode, setIsHopalongMode] = useState(false);
   const [particleShape, setParticleShape] = useState<"circle" | "square" | "triangle" | "star" | "diamond" | "hexagon">("circle");
   const [scale, setScale] = useState(1);
   const [clearTrigger, setClearTrigger] = useState(0);
@@ -74,7 +75,7 @@ const Index = () => {
   return (
     <div className={isDarkMode ? "dark" : ""}>
       <div className="min-h-screen bg-background overflow-hidden">
-        {patternMode === "hopalong" ? (
+        {isHopalongMode ? (
           <HopalongCanvas
             key={clearTrigger}
             colorPalette={getColorPalette(colorScheme)}
@@ -96,7 +97,15 @@ const Index = () => {
             colorScheme={colorScheme}
             onColorSchemeChange={setColorScheme}
             patternMode={patternMode}
-            onPatternModeChange={setPatternMode}
+            onPatternModeChange={(mode) => {
+              if (mode === "hopalong") {
+                setIsHopalongMode(true);
+              } else {
+                setIsHopalongMode(false);
+                setPatternMode(mode);
+              }
+            }}
+            isHopalongMode={isHopalongMode}
             particleShape={particleShape}
             onParticleShapeChange={setParticleShape}
             scale={scale}
