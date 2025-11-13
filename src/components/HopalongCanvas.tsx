@@ -15,8 +15,8 @@ const NUM_POINTS_SUBSET = 33300;
 const NUM_SUBSETS = 3; // Reduced from 7 for more focused view
 const NUM_LEVELS = 3; // Reduced from 7 for more immersive experience
 const LEVEL_DEPTH = 400; // Reduced from 600 for more compact patterns
-const DEF_BRIGHTNESS = 0.6; // HSL lightness (0.5 = vibrant colors, 1.0 = white)
-const DEF_SATURATION = 0.8;
+const DEF_BRIGHTNESS = 0.75; // Increased for brighter, more neon colors
+const DEF_SATURATION = 1.0; // Full saturation for maximum neon effect
 
 // Orbit parameters constraints (from original)
 const A_MIN = -30;
@@ -184,11 +184,11 @@ const HopalongLayer = ({
         <bufferAttribute attach="attributes-color" count={NUM_POINTS_SUBSET} array={orbitData.colors} itemSize={3} />
       </bufferGeometry>
       <pointsMaterial
-        size={6}
+        size={8}
         map={texture}
         vertexColors
         transparent
-        opacity={0.95}
+        opacity={1.0}
         sizeAttenuation
         blending={THREE.AdditiveBlending}
         depthTest={false}
@@ -317,7 +317,7 @@ export const HopalongCanvas = ({ colorPalette, speed }: HopalongCanvasProps) => 
         frameloop="always"
       >
         <color attach="background" args={["#000000"]} />
-        <fogExp2 attach="fog" args={["#000000", 0.001]} />
+        <fogExp2 attach="fog" args={["#000000", 0.0008]} />
 
         <CameraController />
         <StatsMonitor />
