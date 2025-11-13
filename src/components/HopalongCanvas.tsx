@@ -15,8 +15,8 @@ const NUM_POINTS_SUBSET = 32000;
 const NUM_SUBSETS = 7; // Reduced from 7 for more focused view
 const NUM_LEVELS = 7; // Reduced from 7 for more immersive experience
 const LEVEL_DEPTH = 600; // Reduced from 600 for more compact patterns
-const DEF_BRIGHTNESS = 0.75; // Increased for brighter, more neon colors
-const DEF_SATURATION = 1.0; // Full saturation for maximum neon effect
+const DEF_BRIGHTNESS = 0.7; // Increased for brighter, more neon colors
+const DEF_SATURATION = 0.8; // Full saturation for maximum neon effect
 // Orbit parameters constraints (from original)
 const A_MIN = -30;
 const A_MAX = 30;
