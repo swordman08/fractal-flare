@@ -288,7 +288,7 @@ export const HopalongCanvas = ({ colorPalette, speed }: HopalongCanvasProps) => 
       const newOrbitData = Array.from({ length: NUM_SUBSETS }, (_, i) => generateHopalongOrbit(Math.random(), i));
       setOrbitDataArray(newOrbitData);
       setUpdateCounter((prev) => prev + 1);
-    }, 3000);
+    }, 1000);
 
     return () => clearInterval(interval);
   }, []);
