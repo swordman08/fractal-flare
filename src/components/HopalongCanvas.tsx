@@ -12,11 +12,12 @@ interface HopalongCanvasProps {
 const SCALE_FACTOR = 1500;
 const CAMERA_BOUND = 200;
 const NUM_POINTS_SUBSET = 32000;
-const NUM_SUBSETS = 7; // Reduced from 7 for more focused view
-const NUM_LEVELS = 7; // Reduced from 7 for more immersive experience
-const LEVEL_DEPTH = 600; // Reduced from 600 for more compact patterns
-const DEF_BRIGHTNESS = 0.7; // Increased for brighter, more neon colors
-const DEF_SATURATION = 0.8; // Full saturation for maximum neon effect
+const NUM_SUBSETS = 7;
+const NUM_LEVELS = 7;
+const LEVEL_DEPTH = 600;
+const DEF_BRIGHTNESS = 1; // Match reference implementation
+const DEF_SATURATION = 0.8;
+const SPRITE_SIZE = 5; // Smaller sprites for better fade effect
 // Orbit parameters constraints (from original)
 const A_MIN = -30;
 const A_MAX = 30;
@@ -175,7 +176,7 @@ const HopalongLayer = ({
         <bufferAttribute attach="attributes-color" count={NUM_POINTS_SUBSET} array={orbitData.colors} itemSize={3} />
       </bufferGeometry>
       <pointsMaterial
-        size={8}
+        size={SPRITE_SIZE}
         map={texture}
         vertexColors
         transparent
@@ -278,13 +279,13 @@ export const HopalongCanvas = ({ colorPalette, speed }: HopalongCanvasProps) => 
     return loader.load(galaxyTexture);
   });
 
-  // Regenerate all patterns together every 12 seconds
+  // Regenerate all patterns together every 3 seconds (matching reference)
   useEffect(() => {
     const interval = setInterval(() => {
       const newOrbitData = Array.from({ length: NUM_SUBSETS }, (_, i) => generateHopalongOrbit(Math.random(), i));
       setOrbitDataArray(newOrbitData);
       setUpdateCounter((prev) => prev + 1);
-    }, 2000);
+    }, 3000);
 
     return () => clearInterval(interval);
   }, []);
@@ -324,7 +325,7 @@ export const HopalongCanvas = ({ colorPalette, speed }: HopalongCanvasProps) => 
         frameloop="always"
       >
         <color attach="background" args={["#000000"]} />
-        <fogExp2 attach="fog" args={["#000000", 0.002]} />
+        <fogExp2 attach="fog" args={["#000000", 0.0010]} />
 
         <CameraController />
         <StatsMonitor />
