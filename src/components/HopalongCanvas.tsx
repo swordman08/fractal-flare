@@ -11,7 +11,7 @@ interface HopalongCanvasProps {
 
 const SCALE_FACTOR = 1500;
 const CAMERA_BOUND = 200;
-const NUM_POINTS_SUBSET = 15000;
+const NUM_POINTS_SUBSET = 40000;
 const NUM_SUBSETS = 7;
 const NUM_LEVELS = 7;
 const LEVEL_DEPTH = 600;
@@ -42,22 +42,25 @@ const generateHopalongOrbit = (hueValue: number, subset: number): OrbitData => {
   const c = C_MIN + Math.random() * (C_MAX - C_MIN);
   const d = D_MIN + Math.random() * (D_MAX - D_MIN);
   const e = E_MIN + Math.random() * (E_MAX - E_MIN);
-  
+
   const choice = Math.random();
   const positions = new Float32Array(NUM_POINTS_SUBSET * 3);
   const colors = new Float32Array(NUM_POINTS_SUBSET * 3);
-  
+
   // Use different starting point for each subset (from original)
   let x = subset * 0.005 * (0.5 - Math.random());
   let y = subset * 0.005 * (0.5 - Math.random());
-  let xMin = 0, xMax = 0, yMin = 0, yMax = 0;
-  
+  let xMin = 0,
+    xMax = 0,
+    yMin = 0,
+    yMax = 0;
+
   const points: Array<{ x: number; y: number }> = [];
-  
+
   // Generate orbit points using exact Hopalong formula from original
   for (let i = 0; i < NUM_POINTS_SUBSET; i++) {
     let z;
-    
+
     // Three formula variations from original (exact implementation)
     if (choice < 0.5) {
       z = d + Math.sqrt(Math.abs(b * x - c));
@@ -66,7 +69,7 @@ const generateHopalongOrbit = (hueValue: number, subset: number): OrbitData => {
     } else {
       z = d + Math.log(2 + Math.sqrt(Math.abs(b * x - c)));
     }
-    
+
     let x1;
     if (x > 0) {
       x1 = y - z;
@@ -75,49 +78,49 @@ const generateHopalongOrbit = (hueValue: number, subset: number): OrbitData => {
     } else {
       x1 = y + z;
     }
-    
+
     y = a - x;
     x = x1 + e;
-    
+
     points.push({ x, y });
-    
+
     if (x < xMin) xMin = x;
     else if (x > xMax) xMax = x;
     if (y < yMin) yMin = y;
     else if (y > yMax) yMax = y;
   }
-  
+
   // Normalize to SCALE_FACTOR (exact from original)
   const scaleX = (2 * SCALE_FACTOR) / (xMax - xMin);
   const scaleY = (2 * SCALE_FACTOR) / (yMax - yMin);
-  
+
   // Apply normalization and colors using HSV
   for (let i = 0; i < NUM_POINTS_SUBSET; i++) {
     positions[i * 3] = scaleX * (points[i].x - xMin) - SCALE_FACTOR;
     positions[i * 3 + 1] = scaleY * (points[i].y - yMin) - SCALE_FACTOR;
     positions[i * 3 + 2] = 0;
-    
+
     // Use HSV color system from original
     const color = new THREE.Color();
     color.setHSL(hueValue, DEF_SATURATION, DEF_BRIGHTNESS);
-    
+
     colors[i * 3] = color.r;
     colors[i * 3 + 1] = color.g;
     colors[i * 3 + 2] = color.b;
   }
-  
+
   return { positions, colors };
 };
 
-const HopalongLayer = ({ 
-  level, 
-  subset, 
+const HopalongLayer = ({
+  level,
+  subset,
   speedRef,
   rotationSpeedRef,
   hueValue,
-  texture
-}: { 
-  level: number; 
+  texture,
+}: {
+  level: number;
   subset: number;
   speedRef: React.MutableRefObject<number>;
   rotationSpeedRef: React.MutableRefObject<number>;
@@ -126,15 +129,13 @@ const HopalongLayer = ({
 }) => {
   const pointsRef = useRef<THREE.Points>(null);
   const needsUpdateRef = useRef(false);
-  const [orbitData, setOrbitData] = useState<OrbitData>(() => 
-    generateHopalongOrbit(hueValue, subset)
-  );
+  const [orbitData, setOrbitData] = useState<OrbitData>(() => generateHopalongOrbit(hueValue, subset));
   const [color] = useState(() => {
     const c = new THREE.Color();
     c.setHSL(hueValue, DEF_SATURATION, DEF_BRIGHTNESS);
     return c;
   });
-  
+
   useEffect(() => {
     // Regenerate orbit every 3 seconds (exact from original)
     const interval = setInterval(() => {
@@ -142,39 +143,35 @@ const HopalongLayer = ({
       setOrbitData(newData);
       needsUpdateRef.current = true;
     }, 3000);
-    
+
     return () => clearInterval(interval);
   }, [subset]);
-  
+
   useFrame((state) => {
     if (!pointsRef.current) return;
-    
+
     // Move forward at current speed
     pointsRef.current.position.z += speedRef.current;
-    
+
     // Apply rotation
     pointsRef.current.rotation.z += rotationSpeedRef.current;
-    
+
     // Loop when passing camera (exact from original)
     if (pointsRef.current.position.z > state.camera.position.z) {
       pointsRef.current.position.z = -(NUM_LEVELS - 1) * LEVEL_DEPTH;
-      
+
       if (needsUpdateRef.current) {
-        pointsRef.current.geometry.setAttribute('position', 
-          new THREE.BufferAttribute(orbitData.positions, 3)
-        );
-        pointsRef.current.geometry.setAttribute('color', 
-          new THREE.BufferAttribute(orbitData.colors, 3)
-        );
+        pointsRef.current.geometry.setAttribute("position", new THREE.BufferAttribute(orbitData.positions, 3));
+        pointsRef.current.geometry.setAttribute("color", new THREE.BufferAttribute(orbitData.colors, 3));
         pointsRef.current.geometry.attributes.position.needsUpdate = true;
         pointsRef.current.geometry.attributes.color.needsUpdate = true;
         needsUpdateRef.current = false;
       }
     }
   });
-  
-  const initialZ = -LEVEL_DEPTH * level - (subset * LEVEL_DEPTH / NUM_SUBSETS) + SCALE_FACTOR / 2;
-  
+
+  const initialZ = -LEVEL_DEPTH * level - (subset * LEVEL_DEPTH) / NUM_SUBSETS + SCALE_FACTOR / 2;
+
   return (
     <points ref={pointsRef} position={[0, 0, initialZ]}>
       <bufferGeometry>
@@ -184,12 +181,7 @@ const HopalongLayer = ({
           array={orbitData.positions}
           itemSize={3}
         />
-        <bufferAttribute
-          attach="attributes-color"
-          count={NUM_POINTS_SUBSET}
-          array={orbitData.colors}
-          itemSize={3}
-        />
+        <bufferAttribute attach="attributes-color" count={NUM_POINTS_SUBSET} array={orbitData.colors} itemSize={3} />
       </bufferGeometry>
       <pointsMaterial
         size={5}
@@ -225,12 +217,12 @@ const CameraController = () => {
       }
     };
 
-    document.addEventListener('mousemove', handleMouseMove);
-    document.addEventListener('touchmove', handleTouchMove);
+    document.addEventListener("mousemove", handleMouseMove);
+    document.addEventListener("touchmove", handleTouchMove);
 
     return () => {
-      document.removeEventListener('mousemove', handleMouseMove);
-      document.removeEventListener('touchmove', handleTouchMove);
+      document.removeEventListener("mousemove", handleMouseMove);
+      document.removeEventListener("touchmove", handleTouchMove);
     };
   }, []);
 
@@ -241,7 +233,7 @@ const CameraController = () => {
       if (camera.position.x < -CAMERA_BOUND) camera.position.x = -CAMERA_BOUND;
       if (camera.position.x > CAMERA_BOUND) camera.position.x = CAMERA_BOUND;
     }
-    
+
     if (camera.position.y >= -CAMERA_BOUND && camera.position.y <= CAMERA_BOUND) {
       camera.position.y += (-mouseY.current - camera.position.y) * 0.05;
       if (camera.position.y < -CAMERA_BOUND) camera.position.y = -CAMERA_BOUND;
@@ -258,9 +250,9 @@ const StatsMonitor = () => {
   useEffect(() => {
     const stats = new Stats();
     statsRef.current = stats;
-    stats.domElement.style.position = 'absolute';
-    stats.domElement.style.top = '5px';
-    stats.domElement.style.right = '5px';
+    stats.domElement.style.position = "absolute";
+    stats.domElement.style.top = "5px";
+    stats.domElement.style.right = "5px";
     document.body.appendChild(stats.domElement);
 
     return () => {
@@ -282,10 +274,8 @@ const StatsMonitor = () => {
 export const HopalongCanvas = ({ colorPalette, speed }: HopalongCanvasProps) => {
   const speedRef = useRef(8); // Default speed from original
   const rotationSpeedRef = useRef(0.005); // Default rotation from original
-  const [hueValues] = useState(() => 
-    Array.from({ length: NUM_SUBSETS }, () => Math.random())
-  );
-  
+  const [hueValues] = useState(() => Array.from({ length: NUM_SUBSETS }, () => Math.random()));
+
   // Load galaxy texture using THREE.TextureLoader
   const [texture] = useState(() => {
     const loader = new THREE.TextureLoader();
@@ -306,8 +296,8 @@ export const HopalongCanvas = ({ colorPalette, speed }: HopalongCanvasProps) => 
       }
     };
 
-    document.addEventListener('keydown', handleKeyDown);
-    return () => document.removeEventListener('keydown', handleKeyDown);
+    document.addEventListener("keydown", handleKeyDown);
+    return () => document.removeEventListener("keydown", handleKeyDown);
   }, []);
 
   // Update speed from props
@@ -319,18 +309,18 @@ export const HopalongCanvas = ({ colorPalette, speed }: HopalongCanvasProps) => 
     <div className="fixed inset-0 w-full h-full">
       <Canvas
         camera={{ position: [0, 0, SCALE_FACTOR / 2], fov: 60 }}
-        gl={{ 
+        gl={{
           antialias: false, // Exact from original
           alpha: true,
-          powerPreference: "high-performance"
+          powerPreference: "high-performance",
         }}
       >
         <color attach="background" args={["#000000"]} />
         <fogExp2 attach="fog" args={["#000000", 0.001]} />
-        
+
         <CameraController />
         <StatsMonitor />
-        
+
         {/* Create multiple levels and subsets (exact structure from original) */}
         {Array.from({ length: NUM_LEVELS }).map((_, level) =>
           Array.from({ length: NUM_SUBSETS }).map((_, subset) => (
@@ -343,7 +333,7 @@ export const HopalongCanvas = ({ colorPalette, speed }: HopalongCanvasProps) => 
               hueValue={hueValues[subset]}
               texture={texture}
             />
-          ))
+          )),
         )}
       </Canvas>
     </div>
