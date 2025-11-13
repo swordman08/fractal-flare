@@ -267,8 +267,8 @@ export const HopalongCanvas = ({ colorPalette, speed }: HopalongCanvasProps) => 
   const speedRef = useRef(8); // Default speed from original
   const rotationSpeedRef = useRef(0.005); // Default rotation from original
   const [hueValues] = useState(() => Array.from({ length: NUM_SUBSETS }, () => Math.random()));
-  const [orbitDataArray, setOrbitDataArray] = useState(() => 
-    Array.from({ length: NUM_SUBSETS }, (_, i) => generateHopalongOrbit(hueValues[i], i))
+  const [orbitDataArray, setOrbitDataArray] = useState(() =>
+    Array.from({ length: NUM_SUBSETS }, (_, i) => generateHopalongOrbit(hueValues[i], i)),
   );
   const [updateCounter, setUpdateCounter] = useState(0);
 
@@ -281,12 +281,10 @@ export const HopalongCanvas = ({ colorPalette, speed }: HopalongCanvasProps) => 
   // Regenerate all patterns together every 12 seconds
   useEffect(() => {
     const interval = setInterval(() => {
-      const newOrbitData = Array.from({ length: NUM_SUBSETS }, (_, i) => 
-        generateHopalongOrbit(Math.random(), i)
-      );
+      const newOrbitData = Array.from({ length: NUM_SUBSETS }, (_, i) => generateHopalongOrbit(Math.random(), i));
       setOrbitDataArray(newOrbitData);
-      setUpdateCounter(prev => prev + 1);
-    }, 12000);
+      setUpdateCounter((prev) => prev + 1);
+    }, 2000);
 
     return () => clearInterval(interval);
   }, []);
