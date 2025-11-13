@@ -15,7 +15,7 @@ const NUM_POINTS_SUBSET = 40000;
 const NUM_SUBSETS = 7;
 const NUM_LEVELS = 7;
 const LEVEL_DEPTH = 600;
-const DEF_BRIGHTNESS = 0.5; // HSL lightness (0.5 = vibrant colors, 1.0 = white)
+const DEF_BRIGHTNESS = 0.75; // HSL lightness (0.5 = vibrant colors, 1.0 = white)
 const DEF_SATURATION = 0.8;
 
 // Orbit parameters constraints (from original)
