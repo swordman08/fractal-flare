@@ -118,6 +118,8 @@ const HopalongLayer = ({
   rotationSpeedRef,
   hueValue,
   texture,
+  orbitData,
+  needsUpdate,
 }: {
   level: number;
   subset: number;
@@ -125,26 +127,16 @@ const HopalongLayer = ({
   rotationSpeedRef: React.MutableRefObject<number>;
   hueValue: number;
   texture: THREE.Texture;
+  orbitData: OrbitData;
+  needsUpdate: number;
 }) => {
   const pointsRef = useRef<THREE.Points>(null);
-  const needsUpdateRef = useRef(false);
-  const [orbitData, setOrbitData] = useState<OrbitData>(() => generateHopalongOrbit(hueValue, subset));
+  const lastUpdateRef = useRef(0);
   const [color] = useState(() => {
     const c = new THREE.Color();
     c.setHSL(hueValue, DEF_SATURATION, DEF_BRIGHTNESS);
     return c;
   });
-
-  useEffect(() => {
-    // Regenerate orbit every 5 seconds (increased from 3 to reduce GC pressure)
-    const interval = setInterval(() => {
-      const newData = generateHopalongOrbit(Math.random(), subset);
-      setOrbitData(newData);
-      needsUpdateRef.current = true;
-    }, 3000);
-
-    return () => clearInterval(interval);
-  }, [subset]);
 
   useFrame((state) => {
     if (!pointsRef.current) return;
@@ -159,12 +151,12 @@ const HopalongLayer = ({
     if (pointsRef.current.position.z > state.camera.position.z) {
       pointsRef.current.position.z = -(NUM_LEVELS - 1) * LEVEL_DEPTH;
 
-      if (needsUpdateRef.current) {
+      if (needsUpdate > lastUpdateRef.current) {
         pointsRef.current.geometry.setAttribute("position", new THREE.BufferAttribute(orbitData.positions, 3));
         pointsRef.current.geometry.setAttribute("color", new THREE.BufferAttribute(orbitData.colors, 3));
         pointsRef.current.geometry.attributes.position.needsUpdate = true;
         pointsRef.current.geometry.attributes.color.needsUpdate = true;
-        needsUpdateRef.current = false;
+        lastUpdateRef.current = needsUpdate;
       }
     }
   });
@@ -275,12 +267,29 @@ export const HopalongCanvas = ({ colorPalette, speed }: HopalongCanvasProps) => 
   const speedRef = useRef(8); // Default speed from original
   const rotationSpeedRef = useRef(0.005); // Default rotation from original
   const [hueValues] = useState(() => Array.from({ length: NUM_SUBSETS }, () => Math.random()));
+  const [orbitDataArray, setOrbitDataArray] = useState(() => 
+    Array.from({ length: NUM_SUBSETS }, (_, i) => generateHopalongOrbit(hueValues[i], i))
+  );
+  const [updateCounter, setUpdateCounter] = useState(0);
 
   // Load galaxy texture using THREE.TextureLoader
   const [texture] = useState(() => {
     const loader = new THREE.TextureLoader();
     return loader.load(galaxyTexture);
   });
+
+  // Regenerate all patterns together every 12 seconds
+  useEffect(() => {
+    const interval = setInterval(() => {
+      const newOrbitData = Array.from({ length: NUM_SUBSETS }, (_, i) => 
+        generateHopalongOrbit(Math.random(), i)
+      );
+      setOrbitDataArray(newOrbitData);
+      setUpdateCounter(prev => prev + 1);
+    }, 12000);
+
+    return () => clearInterval(interval);
+  }, []);
 
   useEffect(() => {
     // Keyboard controls (exact from original)
@@ -333,6 +342,8 @@ export const HopalongCanvas = ({ colorPalette, speed }: HopalongCanvasProps) => 
               rotationSpeedRef={rotationSpeedRef}
               hueValue={hueValues[subset]}
               texture={texture}
+              orbitData={orbitDataArray[subset]}
+              needsUpdate={updateCounter}
             />
           )),
         )}
