@@ -2,6 +2,8 @@ import { useRef, useEffect, useState } from "react";
 import { Canvas, useFrame, useThree } from "@react-three/fiber";
 import * as THREE from "three";
 import { Stats } from "@/utils/stats";
+import { useTexture } from "@react-three/drei";
+import galaxyTexture from "@/assets/galaxy.png";
 
 interface HopalongCanvasProps {
   colorPalette: string[];
@@ -113,19 +115,26 @@ const HopalongLayer = ({
   subset, 
   speedRef,
   rotationSpeedRef,
-  hueValue
+  hueValue,
+  texture
 }: { 
   level: number; 
   subset: number;
   speedRef: React.MutableRefObject<number>;
   rotationSpeedRef: React.MutableRefObject<number>;
   hueValue: number;
+  texture: THREE.Texture;
 }) => {
   const pointsRef = useRef<THREE.Points>(null);
   const needsUpdateRef = useRef(false);
   const [orbitData, setOrbitData] = useState<OrbitData>(() => 
     generateHopalongOrbit(hueValue, subset)
   );
+  const [color] = useState(() => {
+    const c = new THREE.Color();
+    c.setHSL(hueValue, DEF_SATURATION, DEF_BRIGHTNESS);
+    return c;
+  });
   
   useEffect(() => {
     // Regenerate orbit every 3 seconds (exact from original)
@@ -185,12 +194,14 @@ const HopalongLayer = ({
       </bufferGeometry>
       <pointsMaterial
         size={5}
+        map={texture}
         vertexColors
         transparent
         opacity={0.95}
         sizeAttenuation
         blending={THREE.AdditiveBlending}
         depthTest={false}
+        color={color}
       />
     </points>
   );
@@ -275,6 +286,9 @@ export const HopalongCanvas = ({ colorPalette, speed }: HopalongCanvasProps) => 
   const [hueValues] = useState(() => 
     Array.from({ length: NUM_SUBSETS }, () => Math.random())
   );
+  
+  // Load galaxy texture
+  const texture = useTexture(galaxyTexture);
 
   useEffect(() => {
     // Keyboard controls (exact from original)
@@ -310,7 +324,7 @@ export const HopalongCanvas = ({ colorPalette, speed }: HopalongCanvasProps) => 
         }}
       >
         <color attach="background" args={["#000000"]} />
-        <fog attach="fog" args={["#000000", 0.001]} />
+        <fogExp2 attach="fog" args={["#000000", 0.001]} />
         
         <CameraController />
         <StatsMonitor />
@@ -325,6 +339,7 @@ export const HopalongCanvas = ({ colorPalette, speed }: HopalongCanvasProps) => 
               speedRef={speedRef}
               rotationSpeedRef={rotationSpeedRef}
               hueValue={hueValues[subset]}
+              texture={texture}
             />
           ))
         )}
