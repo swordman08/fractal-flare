@@ -2,7 +2,6 @@ import { useRef, useEffect, useState } from "react";
 import { Canvas, useFrame, useThree } from "@react-three/fiber";
 import * as THREE from "three";
 import { Stats } from "@/utils/stats";
-import { useTexture } from "@react-three/drei";
 import galaxyTexture from "@/assets/galaxy.png";
 
 interface HopalongCanvasProps {
@@ -287,8 +286,11 @@ export const HopalongCanvas = ({ colorPalette, speed }: HopalongCanvasProps) => 
     Array.from({ length: NUM_SUBSETS }, () => Math.random())
   );
   
-  // Load galaxy texture
-  const texture = useTexture(galaxyTexture);
+  // Load galaxy texture using THREE.TextureLoader
+  const [texture] = useState(() => {
+    const loader = new THREE.TextureLoader();
+    return loader.load(galaxyTexture);
+  });
 
   useEffect(() => {
     // Keyboard controls (exact from original)
