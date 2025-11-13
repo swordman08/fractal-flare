@@ -9,7 +9,7 @@ interface HopalongCanvasProps {
   speed: number;
 }
 
-const SCALE_FACTOR = 3000;
+const SCALE_FACTOR = 1000;
 const CAMERA_BOUND = 100;
 const NUM_POINTS_SUBSET = 32000;
 const NUM_SUBSETS = 7;
