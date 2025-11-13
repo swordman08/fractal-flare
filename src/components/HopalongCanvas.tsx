@@ -328,7 +328,7 @@ export const HopalongCanvas = ({ colorPalette, speed }: HopalongCanvasProps) => 
         frameloop="always"
       >
         <color attach="background" args={["#000000"]} />
-        <fogExp2 attach="fog" args={["#000000", 0.0018]} />
+        <fogExp2 attach="fog" args={["#000000", 0.0024]} />
 
         <CameraController />
         <StatsMonitor />
