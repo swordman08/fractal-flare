@@ -12,9 +12,9 @@ interface HopalongCanvasProps {
 const SCALE_FACTOR = 1500;
 const CAMERA_BOUND = 200;
 const NUM_POINTS_SUBSET = 33300;
-const NUM_SUBSETS = 7;
-const NUM_LEVELS = 7;
-const LEVEL_DEPTH = 600;
+const NUM_SUBSETS = 3; // Reduced from 7 for more focused view
+const NUM_LEVELS = 3; // Reduced from 7 for more immersive experience
+const LEVEL_DEPTH = 400; // Reduced from 600 for more compact patterns
 const DEF_BRIGHTNESS = 0.6; // HSL lightness (0.5 = vibrant colors, 1.0 = white)
 const DEF_SATURATION = 0.8;
 
@@ -137,12 +137,12 @@ const HopalongLayer = ({
   });
 
   useEffect(() => {
-    // Regenerate orbit every 3 seconds (exact from original)
+    // Regenerate orbit every 5 seconds (increased from 3 to reduce GC pressure)
     const interval = setInterval(() => {
       const newData = generateHopalongOrbit(Math.random(), subset);
       setOrbitData(newData);
       needsUpdateRef.current = true;
-    }, 3000);
+    }, 5000);
 
     return () => clearInterval(interval);
   }, [subset]);
@@ -184,7 +184,7 @@ const HopalongLayer = ({
         <bufferAttribute attach="attributes-color" count={NUM_POINTS_SUBSET} array={orbitData.colors} itemSize={3} />
       </bufferGeometry>
       <pointsMaterial
-        size={5}
+        size={6}
         map={texture}
         vertexColors
         transparent
@@ -308,12 +308,13 @@ export const HopalongCanvas = ({ colorPalette, speed }: HopalongCanvasProps) => 
   return (
     <div className="fixed inset-0 w-full h-full pointer-events-none">
       <Canvas
-        camera={{ position: [0, 0, SCALE_FACTOR / 2], fov: 60 }}
+        camera={{ position: [0, 0, SCALE_FACTOR / 3], fov: 75 }}
         gl={{
-          antialias: false, // Exact from original
+          antialias: false,
           alpha: true,
           powerPreference: "high-performance",
         }}
+        frameloop="always"
       >
         <color attach="background" args={["#000000"]} />
         <fogExp2 attach="fog" args={["#000000", 0.001]} />
