@@ -134,16 +134,6 @@ const HopalongLayer = ({
     c.setHSL(hueValue, DEF_SATURATION, DEF_BRIGHTNESS);
     return c;
   });
-  
-  // Calculate radial offset to position patterns in a ring around center (creates dark center hole)
-  const radialOffset = useState(() => {
-    const angle = (subset / NUM_SUBSETS) * Math.PI * 2;
-    const radius = 300; // Distance from center axis
-    return {
-      x: Math.cos(angle) * radius,
-      y: Math.sin(angle) * radius
-    };
-  })[0];
 
   useEffect(() => {
     // Regenerate orbit every 5 seconds (increased from 3 to reduce GC pressure)
@@ -182,7 +172,7 @@ const HopalongLayer = ({
   const initialZ = -LEVEL_DEPTH * level - (subset * LEVEL_DEPTH) / NUM_SUBSETS + SCALE_FACTOR / 2;
 
   return (
-    <points ref={pointsRef} position={[radialOffset.x, radialOffset.y, initialZ]}>
+    <points ref={pointsRef} position={[0, 0, initialZ]}>
       <bufferGeometry>
         <bufferAttribute
           attach="attributes-position"
