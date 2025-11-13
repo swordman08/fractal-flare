@@ -17,7 +17,7 @@ const NUM_LEVELS = 8;
 const LEVEL_DEPTH = 175;
 const DEF_BRIGHTNESS = 0.65; // Match reference implementation
 const DEF_SATURATION = 0.8;
-const SPRITE_SIZE = 3; // Smaller sprites for better fade effect
+const SPRITE_SIZE = 6; // Smaller sprites for better fade effect
 // Orbit parameters constraints (from original)
 const A_MIN = -30;
 const A_MAX = 30;
