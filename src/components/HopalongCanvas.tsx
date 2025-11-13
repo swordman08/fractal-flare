@@ -128,7 +128,7 @@ const HopalongLayer = ({
   rotationSpeedRef: React.MutableRefObject<number>;
   hueValue: number;
   texture: THREE.Texture;
-  orbitData: OrbitData;
+  orbitData: OrbitData | undefined;
   needsUpdate: number;
 }) => {
   const pointsRef = useRef<THREE.Points>(null);
@@ -138,6 +138,9 @@ const HopalongLayer = ({
     c.setHSL(hueValue, DEF_SATURATION, DEF_BRIGHTNESS);
     return c;
   });
+
+  // Don't render if orbitData is undefined
+  if (!orbitData) return null;
 
   useFrame((state) => {
     if (!pointsRef.current) return;
