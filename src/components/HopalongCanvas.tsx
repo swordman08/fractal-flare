@@ -12,9 +12,9 @@ interface HopalongCanvasProps {
 const SCALE_FACTOR = 1500;
 const CAMERA_BOUND = 200;
 const NUM_POINTS_SUBSET = 32000;
-const NUM_SUBSETS = 7; // Reduced from 7 for more focused view
-const NUM_LEVELS = 7; // Reduced from 7 for more immersive experience
-const LEVEL_DEPTH = 600; // Reduced from 600 for more compact patterns
+const NUM_SUBSETS = 7; // Number of unique orbit patterns
+const NUM_REPETITIONS = 5; // How many times each pattern repeats
+const LEVEL_DEPTH = 600; // Distance between each pattern layer
 const DEF_BRIGHTNESS = 0.7; // Increased for brighter, more neon colors
 const DEF_SATURATION = 0.8; // Full saturation for maximum neon effect
 // Orbit parameters constraints (from original)
@@ -112,15 +112,15 @@ const generateHopalongOrbit = (hueValue: number, subset: number): OrbitData => {
 };
 
 const HopalongLayer = ({
-  level,
   subset,
+  repetition,
   speedRef,
   rotationSpeedRef,
   hueValue,
   texture,
 }: {
-  level: number;
   subset: number;
+  repetition: number;
   speedRef: React.MutableRefObject<number>;
   rotationSpeedRef: React.MutableRefObject<number>;
   hueValue: number;
@@ -157,7 +157,7 @@ const HopalongLayer = ({
 
     // Loop when passing camera (exact from original)
     if (pointsRef.current.position.z > state.camera.position.z) {
-      pointsRef.current.position.z = -(NUM_LEVELS - 1) * LEVEL_DEPTH;
+      pointsRef.current.position.z = -(NUM_SUBSETS * NUM_REPETITIONS - 1) * LEVEL_DEPTH;
 
       if (needsUpdateRef.current) {
         pointsRef.current.geometry.setAttribute("position", new THREE.BufferAttribute(orbitData.positions, 3));
@@ -169,7 +169,9 @@ const HopalongLayer = ({
     }
   });
 
-  const initialZ = -LEVEL_DEPTH * level - (subset * LEVEL_DEPTH) / NUM_SUBSETS + SCALE_FACTOR / 2;
+  // Calculate position: each subset has NUM_REPETITIONS copies, evenly spaced
+  const layerIndex = subset * NUM_REPETITIONS + repetition;
+  const initialZ = -LEVEL_DEPTH * layerIndex + SCALE_FACTOR / 2;
 
   return (
     <points ref={pointsRef} position={[0, 0, initialZ]}>
@@ -322,13 +324,13 @@ export const HopalongCanvas = ({ colorPalette, speed }: HopalongCanvasProps) => 
         <CameraController />
         <StatsMonitor />
 
-        {/* Create multiple levels and subsets (exact structure from original) */}
-        {Array.from({ length: NUM_LEVELS }).map((_, level) =>
-          Array.from({ length: NUM_SUBSETS }).map((_, subset) => (
+        {/* Create multiple repetitions of each pattern */}
+        {Array.from({ length: NUM_SUBSETS }).map((_, subset) =>
+          Array.from({ length: NUM_REPETITIONS }).map((_, repetition) => (
             <HopalongLayer
-              key={`${level}-${subset}`}
-              level={level}
+              key={`${subset}-${repetition}`}
               subset={subset}
+              repetition={repetition}
               speedRef={speedRef}
               rotationSpeedRef={rotationSpeedRef}
               hueValue={hueValues[subset]}
