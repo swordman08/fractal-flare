@@ -191,6 +191,7 @@ const HopalongLayer = ({
         sizeAttenuation
         blending={THREE.AdditiveBlending}
         depthTest={false}
+        fog={true}
         color={color}
       />
     </points>
@@ -316,7 +317,7 @@ export const HopalongCanvas = ({ colorPalette, speed }: HopalongCanvasProps) => 
         frameloop="always"
       >
         <color attach="background" args={["#000000"]} />
-        <fogExp2 attach="fog" args={["#000000", 0.0008]} />
+        <fogExp2 attach="fog" args={["#000000", 0.0012]} />
 
         <CameraController />
         <StatsMonitor />
