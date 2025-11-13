@@ -11,12 +11,12 @@ interface HopalongCanvasProps {
 
 const SCALE_FACTOR = 1000;
 const CAMERA_BOUND = 100;
-const NUM_POINTS_SUBSET = 25000;
+const NUM_POINTS_SUBSET = 40000;
 const NUM_SUBSETS = 8;
 const NUM_LEVELS = 8;
-const LEVEL_DEPTH = 175;
+const LEVEL_DEPTH = 150;
 const DEF_BRIGHTNESS = 0.5; // Match reference implementation
-const DEF_SATURATION = 0.8;
+const DEF_SATURATION = 0.95;
 const SPRITE_SIZE = 5; // Smaller sprites for better fade effect
 // Orbit parameters constraints (from original)
 const A_MIN = -30;
