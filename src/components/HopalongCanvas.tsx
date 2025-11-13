@@ -141,7 +141,7 @@ const HopalongLayer = ({
       const newData = generateHopalongOrbit(Math.random(), subset);
       setOrbitData(newData);
       needsUpdateRef.current = true;
-    }, 5000);
+    }, 3000);
 
     return () => clearInterval(interval);
   }, [subset]);
