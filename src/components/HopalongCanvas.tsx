@@ -252,7 +252,7 @@ const StatsMonitor = () => {
     statsRef.current = stats;
     stats.domElement.style.position = "absolute";
     stats.domElement.style.top = "5px";
-    stats.domElement.style.right = "5px";
+    stats.domElement.style.left = "5px";
     document.body.appendChild(stats.domElement);
 
     return () => {
@@ -306,7 +306,7 @@ export const HopalongCanvas = ({ colorPalette, speed }: HopalongCanvasProps) => 
   }, [speed]);
 
   return (
-    <div className="fixed inset-0 w-full h-full">
+    <div className="fixed inset-0 w-full h-full pointer-events-none">
       <Canvas
         camera={{ position: [0, 0, SCALE_FACTOR / 2], fov: 60 }}
         gl={{

@@ -11,7 +11,7 @@ export const PanelToggle = ({ onToggle }: PanelToggleProps) => {
       variant="default"
       size="sm"
       onClick={onToggle}
-      className="fixed top-4 right-4 z-10 gap-2 bg-primary/90 backdrop-blur-lg shadow-lg animate-fade-in"
+      className="fixed top-4 right-4 z-[10001] gap-2 bg-primary/90 backdrop-blur-lg shadow-lg animate-fade-in pointer-events-auto"
       title="Open Control Panel"
     >
       <Settings className="h-4 w-4" />
