@@ -12,7 +12,7 @@ interface HopalongCanvasProps {
 const SCALE_FACTOR = 1500;
 const CAMERA_BOUND = 200;
 const NUM_POINTS_SUBSET = 32000;
-const NUM_SUBSETS = 2;
+const NUM_SUBSETS = 8;
 const NUM_LEVELS = 8;
 const LEVEL_DEPTH = 175;
 const DEF_BRIGHTNESS = 0.65; // Match reference implementation
