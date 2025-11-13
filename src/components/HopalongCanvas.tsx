@@ -10,8 +10,8 @@ interface HopalongCanvasProps {
 }
 
 const SCALE_FACTOR = 1300;
-const CAMERA_BOUND = 300;
-const NUM_POINTS_SUBSET = 20000;
+const CAMERA_BOUND = 500;
+const NUM_POINTS_SUBSET = 10000;
 const NUM_SUBSETS = 8;
 const NUM_LEVELS = 8;
 const LEVEL_DEPTH = 120;
