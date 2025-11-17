@@ -233,7 +233,7 @@ export const ControlPanel = ({
   };
   if (!isOpen) return null;
   return (
-    <Card className="fixed top-4 right-4 p-4 bg-card/80 backdrop-blur-lg border-border shadow-lg z-[10001] animate-fade-in pointer-events-auto">
+    <Card className="fixed top-4 right-4 p-4 bg-card/80 backdrop-blur-lg border-border shadow-lg z-[10001] animate-fade-in pointer-events-auto max-h-[calc(100vh-2rem)] overflow-y-auto">
       <div className="flex flex-col gap-4">
         {/* Close and Fullscreen Buttons */}
         <div className="flex items-center justify-between gap-2">
