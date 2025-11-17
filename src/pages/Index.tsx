@@ -127,7 +127,7 @@ const Index = () => {
         ) : (
           <PanelToggle onToggle={() => setIsPanelOpen(true)} />
         )}
-        <InfoOverlay />
+        <InfoOverlay isHopalongMode={isHopalongMode} />
         <CreatorTag />
       </div>
     </div>
