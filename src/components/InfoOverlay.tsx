@@ -8,7 +8,7 @@ export const InfoOverlay = ({ isHopalongMode = false }: InfoOverlayProps) => {
   const [visible, setVisible] = useState(true);
 
   useEffect(() => {
-    const timer = setTimeout(() => setVisible(false), 8000);
+    const timer = setTimeout(() => setVisible(false), 10000);
     return () => clearTimeout(timer);
   }, []);
 
