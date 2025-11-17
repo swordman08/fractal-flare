@@ -11,7 +11,7 @@ export const CreatorTag = () => {
   if (!visible) return null;
 
   return (
-    <div className="fixed bottom-4 right-4 z-10 animate-fade-in">
+    <div className="fixed bottom-4 left-4 z-10 animate-fade-in">
       <div className="bg-card/80 backdrop-blur-lg border border-border rounded-lg px-4 py-2 shadow-lg">
         <p className="text-xs text-foreground/70">
           Built by <span className="text-primary font-semibold">Decker</span>
