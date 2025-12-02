@@ -1,7 +1,7 @@
 
 ## Project info
 
-**URL**: https://lovable.dev/projects/27c95fd0-bfe0-4d29-98ed-4ec29a81004f
+**URL**: https://fractal-flare.lovable.app/
 
 ## How can I edit this code?
 
@@ -47,4 +47,4 @@ This project is built with:
 - Tailwind CSS
 
 
-Made by Decker Mecham
+Made by Decker Mecham with help from lovable.dev :)
