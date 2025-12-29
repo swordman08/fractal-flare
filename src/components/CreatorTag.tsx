@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { Github } from "lucide-react";
 
 export const CreatorTag = () => {
   const [visible, setVisible] = useState(true);
@@ -19,8 +20,9 @@ export const CreatorTag = () => {
             href="https://swordman08.github.io/"
             target="_blank"
             rel="noopener noreferrer"
-            className="text-primary font-semibold hover:underline"
+            className="text-primary font-semibold hover:underline inline-flex items-center gap-1"
           >
+            <Github className="w-3 h-3" />
             Decker
           </a>
         </p>
