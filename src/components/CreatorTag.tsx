@@ -14,7 +14,15 @@ export const CreatorTag = () => {
     <div className="fixed bottom-4 left-4 z-10 animate-fade-in">
       <div className="bg-card/80 backdrop-blur-lg border border-border rounded-lg px-4 py-2 shadow-lg">
         <p className="text-xs text-foreground/70">
-          Built by <span className="text-primary font-semibold">Decker</span>
+          Built by{" "}
+          <a
+            href="https://swordman08.github.io/"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-primary font-semibold hover:underline"
+          >
+            Decker
+          </a>
         </p>
       </div>
     </div>
